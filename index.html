@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Los números de Lucas · Aprende matemáticas</title>
+<meta name="description" content="Aprende matemáticas jugando con Lucas, el robot de FuturMovil. Números, sumas, restas y tablas para niños de 4 a 8 años.">
+<meta name="theme-color" content="#050a1a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="Los números de Lucas · Aprende matemáticas">
+<meta property="og:site_name" content="FuturMovil">
+<meta property="og:locale" content="es_ES">
+<meta property="og:description" content="¡Aprende matemáticas jugando con Lucas! Planetas, retos y ejercicios para niños de 4 a 8 años.">
+<meta property="og:image" content="https://puntofibra.github.io/los-numeros-de-lucas/img/compartir.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="634">
+<meta property="og:url" content="https://puntofibra.github.io/los-numeros-de-lucas/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://puntofibra.github.io/los-numeros-de-lucas/img/compartir.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<canvas id="estrellas"></canvas>
+<canvas id="fx"></canvas>
+
+<!-- ============ CARGA ============ -->
+<section id="pCarga" class="pantalla activa">
+  <div class="carga-centro">
+    <span class="robot carga-lucas" data-pose="lucas-vuela" data-fuerza="2"><canvas class="fuego"></canvas><img src="img/lucas/vuela.png" alt="Lucas"></span>
+    <img src="img/logo-futurmovil.png" class="logo-fm logo-carga" alt="FuturMovil">
+    <p class="presenta">presenta</p>
+    <h1 class="titulo-app"><span>LOS NÚMEROS</span> <small>de</small> <span class="verde">LUCAS</span></h1>
+    <div class="barra-carga"><i></i></div>
+    <p class="carga-txt">Cargando motores de cálculo…</p>
+  </div>
+</section>
+
+<!-- ============ LOGIN ============ -->
+<section id="pLogin" class="pantalla">
+  <div class="login-wrap">
+    <div class="login-hero">
+      <img src="img/logo-futurmovil.png" class="logo-fm" alt="FuturMovil">
+      <p class="presenta">presenta</p>
+      <h1 class="titulo-app grande"><span>LOS NÚMEROS</span> <small>de</small> <span class="verde">LUCAS</span></h1>
+      <p class="lema">¡Aprende matemáticas viajando por el espacio!</p>
+      <span class="robot login-lucas flota" data-pose="lucas-senala-capa"><canvas class="fuego"></canvas><img src="img/lucas/senala-capa.png" alt="Lucas"></span>
+    </div>
+    <div class="panel cristal login-panel">
+      <div class="tabs">
+        <button class="tab activa" data-vista="entrar">Entrar</button>
+        <button class="tab" data-vista="crear">Crear cuenta</button>
+      </div>
+      <form id="fEntrar" class="vista-login" autocomplete="on">
+        <label>Correo<input type="email" id="lEmail" name="email" autocomplete="username" required placeholder="tu@correo.com"></label>
+        <label>Contraseña<input type="password" id="lPass" name="password" autocomplete="current-password" required placeholder="••••••"></label>
+        <button class="btn btn-verde btn-grande" type="submit">🚀 ENTRAR</button>
+        <button type="button" class="enlace" id="bOlvide">¿Has olvidado la contraseña?</button>
+      </form>
+      <form id="fCrear" class="vista-login oculto" autocomplete="on">
+        <label>Tu nombre (papá, mamá…)<input type="text" id="cNombre" autocomplete="name" required placeholder="Nombre"></label>
+        <label>Correo<input type="email" id="cEmail" autocomplete="username" required placeholder="tu@correo.com"></label>
+        <label>Contraseña<input type="password" id="cPass" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres"></label>
+        <button class="btn btn-verde btn-grande" type="submit">✨ CREAR CUENTA</button>
+      </form>
+      <form id="fRecuperar" class="vista-login oculto">
+        <p class="nota">Te enviaremos un código a tu correo para crear una contraseña nueva.</p>
+        <label>Correo<input type="email" id="rEmail" required placeholder="tu@correo.com"></label>
+        <button class="btn btn-azul" type="button" id="bEnviarCodigo">📧 Enviar código</button>
+        <div id="rPaso2" class="oculto">
+          <label>Código recibido<input type="text" id="rCodigo" inputmode="numeric" maxlength="6" placeholder="123456"></label>
+          <label>Nueva contraseña<input type="password" id="rPass" autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres"></label>
+          <button class="btn btn-verde" type="submit">✅ Guardar contraseña</button>
+        </div>
+        <button type="button" class="enlace" data-volver>← Volver</button>
+      </form>
+      <div class="separador"><span>o</span></div>
+      <div id="gBoton" class="g-boton"></div>
+      <p id="lMsg" class="msg"></p>
+      <div class="fila-app">
+        <button class="btn btn-mini" id="bInstalar">📲 Instalar app</button>
+        <button class="btn btn-mini" id="bCompartir">💬 Compartir</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PERFILES ============ -->
+<section id="pPerfiles" class="pantalla">
+  <header class="cabecera">
+    <img src="img/logo-futurmovil.png" class="logo-mini" alt="FuturMovil">
+    <div class="cab-acciones">
+      <button class="btn-ico ico-img" data-ir="padres" title="Zona de papás"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#17ff5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.6"/><circle cx="16" cy="6" r="2.6"/><circle cx="12" cy="13" r="2"/><path d="M3.5 20v-3.5a4.5 4.5 0 0 1 9 0M11.5 20v-3.5a4.5 4.5 0 0 1 9 0"/></svg></button>
+      <button class="btn-ico ico-img" id="bSalir" title="Cerrar sesión"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#ff6b78" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
+    </div>
+  </header>
+  <h2 class="titulo-pantalla">¿Quién va a jugar hoy?</h2>
+  <div id="listaNinos" class="lista-ninos"></div>
+</section>
+
+<!-- ============ NUEVO NIÑO ============ -->
+<section id="pNuevo" class="pantalla">
+  <header class="cabecera"><button class="btn-ico" data-ir="perfiles">←</button><h2>Nuevo jugador</h2><span></span></header>
+  <div class="panel cristal nuevo-panel">
+    <div class="nuevo-avatar"><span class="robot avatar-lucas" id="nPreview" data-pose="lucas-senala"><canvas class="fuego"></canvas><img src="img/lucas/senala.png" alt=""></span><div class="pj-nombre" id="nPjNombre">Lucas</div></div>
+    <label>¿Cómo se llama el niño o la niña?<input type="text" id="nNombre" maxlength="16" placeholder="Nombre" autocomplete="off"></label>
+    <p class="etq">¿Cuántos años tiene?</p>
+    <div class="edades" id="nEdades">
+      <button data-e="5">5</button><button data-e="6" class="sel">6</button><button data-e="7">7</button><button data-e="8">8+</button>
+    </div>
+    <p class="etq">Elige su personaje</p>
+    <div class="colores" id="nColores"></div>
+    <button class="btn btn-verde btn-grande" id="bGuardarNino">🚀 ¡A JUGAR!</button>
+    <button class="btn btn-rojo oculto" id="bBorrarNino">🗑️ Eliminar perfil</button>
+  </div>
+</section>
+
+<!-- ============ MAPA ============ -->
+<section id="pMapa" class="pantalla">
+  <header class="cabecera mapa-cab">
+    <button class="nino-chip" data-ir="perfiles"><img id="mAvatar" src="img/lucas/senala.png" alt=""><span id="mNombre">Jugador</span></button>
+    <div class="contadores">
+      <span class="cont" title="Racha de días">🔥 <b id="mRacha">0</b></span>
+      <span class="cont" title="Chispas">⚡ <b id="mChispas">0</b></span>
+      <span class="cont" title="Estrellas">⭐ <b id="mEstrellas">0</b></span>
+    </div>
+    <div class="cab-acciones">
+      <button class="btn-ico" data-ir="album" title="Álbum">📒</button>
+      <button class="btn-ico ico-img" data-ir="padres" title="Zona de papás"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#17ff5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.6"/><circle cx="16" cy="6" r="2.6"/><circle cx="12" cy="13" r="2"/><path d="M3.5 20v-3.5a4.5 4.5 0 0 1 9 0M11.5 20v-3.5a4.5 4.5 0 0 1 9 0"/></svg></button>
+    </div>
+  </header>
+  <div class="mapa-scroll" id="mapaScroll">
+    <div class="mapa" id="mapa"></div>
+  </div>
+  <div class="fila-mapa"><button class="btn btn-mision" id="bDiaria"><span id="bDiariaTxt">MISIÓN DEL DÍA 🎁</span></button><button class="btn btn-cuento" id="bCuento"><img src="img/lucas/senala.png" class="cuento-ico" alt=""><span>RETO</span><small id="bCuentoSub">antes de dormir</small></button></div>
+  <div class="fila-extra"><button class="btn-extra ex-taller" id="bTaller"><span>🛠️</span><b>TALLER</b></button><button class="btn-extra ex-recreo" id="bRecreo"><span>🎮</span><b>RECREO</b><small id="bRecreoSub">2 🎟️</small></button><button class="btn-extra ex-dip" id="bDiplomas"><span>🏅</span><b>DIPLOMAS</b></button></div>
+</section>
+
+<!-- ============ TALLER ============ -->
+<section id="pTaller" class="pantalla">
+  <header class="cabecera"><button class="btn-ico" data-ir="mapa">←</button><h2>Taller de Lucas</h2><span class="cont">⚡ <b id="talChispas">0</b></span></header>
+  <div class="tal-escena" id="tallerRobot"></div>
+  <div class="tal-tabs" id="talTabs"></div>
+  <div class="tal-items" id="talItems"></div>
+</section>
+
+<!-- ============ RECREO ============ -->
+<section id="pRecreo" class="pantalla">
+  <header class="cabecera"><button class="btn-ico" id="recVolver">←</button><h2>Recreo</h2><span class="fichas" id="recFichas"></span></header>
+  <div class="rec-zona" id="recZona"></div>
+</section>
+
+<!-- ============ DIPLOMAS ============ -->
+<section id="pDiplomas" class="pantalla">
+  <header class="cabecera"><button class="btn-ico" data-ir="mapa">←</button><h2>Mis diplomas</h2><span></span></header>
+  <div class="dip-lista" id="dipLista"></div>
+</section>
+
+<!-- ============ JUEGO ============ -->
+<section id="pJuego" class="pantalla">
+  <header class="juego-cab">
+    <button class="btn-ico" id="bCerrarJuego">✕</button>
+    <div class="progreso"><i id="jProg"></i><span id="jProgTxt">1/8</span></div>
+    <div class="cont">⚡ <b id="jChispas">0</b></div>
+  </header>
+  <div class="juego-cuerpo">
+    <aside class="narrador" id="narrador">
+      <div class="burbuja" id="burbuja"><span id="burbujaTxt">¡Hola!</span><button class="btn-oir" id="bRepetir" title="Repetir">🔊</button></div>
+      <span class="robot lucas-narra" id="lucasNarra" data-pose="lucas-senala"><canvas class="fuego"></canvas><img src="img/lucas/senala.png" alt="Lucas"></span>
+    </aside>
+    <main class="escenario" id="escenario"></main>
+  </div>
+</section>
+
+<!-- ============ RETO DEL DÍA ============ -->
+<section id="pCuento" class="pantalla">
+  <div class="noche"></div>
+  <header class="cabecera"><button class="btn-ico" id="bCuentoSalir">←</button><h2 id="cuTitulo">El reto del día</h2><button class="btn-ico" id="bCuentoDias" title="Otros días">📅</button></header>
+  <div class="cuento-cuerpo" id="cuCuerpo"></div>
+</section>
+
+<!-- ============ RESULTADO ============ -->
+<section id="pResultado" class="pantalla">
+  <div class="resultado panel cristal">
+    <span class="robot res-lucas" id="resLucas" data-pose="lucas-vuela" data-fuerza="1.6"><canvas class="fuego"></canvas><img src="img/lucas/vuela.png" alt=""></span>
+    <h2 id="resTitulo">¡Misión completada!</h2>
+    <div class="res-estrellas" id="resEstrellas"><span><img src="img/estrella-on.png" alt=""></span><span><img src="img/estrella-on.png" alt=""></span><span><img src="img/estrella-on.png" alt=""></span></div>
+    <div class="res-datos">
+      <div><b id="resAciertos">0</b><small>aciertos</small></div>
+      <div><b id="resChispas">+0</b><small>chispas ⚡</small></div>
+      <div><b id="resTiempo">0:00</b><small>tiempo</small></div>
+    </div>
+    <div id="resPegatina" class="res-pegatina oculto"></div>
+    <button class="btn btn-verde btn-grande" id="bResSeguir">🚀 SEGUIR</button>
+    <button class="btn btn-azul" id="bResOtra">🔁 Otra misión</button>
+  </div>
+</section>
+
+<!-- ============ ÁLBUM ============ -->
+<section id="pAlbum" class="pantalla">
+  <header class="cabecera"><button class="btn-ico" data-ir="mapa">←</button><h2>Mi álbum espacial</h2><span id="albumCuenta" class="cont">0/40</span></header>
+  <div class="album" id="album"></div>
+  <span class="robot album-lucas" data-pose="lucas-gamer"><canvas class="fuego"></canvas><img src="img/lucas/gamer.png" alt=""></span>
+</section>
+
+<!-- ============ PADRES ============ -->
+<section id="pPadres" class="pantalla">
+  <header class="cabecera"><button class="btn-ico" id="bPadresVolver">←</button><h2>Zona de papás</h2><span></span></header>
+  <div id="padresGate" class="panel cristal gate">
+    <p>Solo para mayores. Resuelve:</p>
+    <h3 id="gateOp">3 × 4</h3>
+    <input type="number" id="gateRes" inputmode="numeric" placeholder="?">
+    <button class="btn btn-verde" id="bGate">Entrar</button>
+  </div>
+  <div id="padresCont" class="padres oculto"></div>
+</section>
+
+<!-- ============ MODAL ============ -->
+<div id="modal" class="modal oculto"><div class="modal-caja panel cristal" id="modalCaja"></div></div>
+<div id="toast" class="toast"></div>
+<div id="giraPantalla" class="gira"><div class="gira-caja"><div class="gira-movil">📱</div><p id="giraTxt">Gira el móvil</p><small>¡Lucas vuela mejor así!</small></div></div>
+
+<script src="data.js"></script>
+<script src="data2.js"></script>
+<script src="data3.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+<script src="extras.js"></script>
+<script src="recreo2.js"></script>
+</body>
+</html>
