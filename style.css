@@ -744,3 +744,9 @@ body, button, input, select, .btn, .titulo-pantalla, .cabecera h2, .btn-grande, 
 .titulo-img-wrap { margin: -8% 0 -9%; width: 100%; max-width: 440px; text-align: center; line-height: 0; }
 .titulo-img-wrap.grande { max-width: 480px; }
 .titulo-img { width: 136%; margin-left: -18%; height: auto; filter: drop-shadow(0 0 18px rgba(23,255,95,.35)); animation: aparece .6s cubic-bezier(.3,1.6,.5,1); }
+/* pantalla de carga: todo en columna y centrado (robot, FuturMovil debajo, presenta y título) */
+.carga-centro { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+.carga-centro .carga-lucas, .carga-centro .logo-carga { display: block; margin-left: auto; margin-right: auto; }
+.carga-centro .titulo-img-wrap, .login-hero .titulo-img-wrap { width: min(92vw, 440px); margin-left: auto; margin-right: auto; }
+.carga-centro .barra-carga { margin-left: auto; margin-right: auto; }
+.titulo-img-wrap, .carga-centro .titulo-img-wrap, .login-hero .titulo-img-wrap { margin-top: calc(-0.13 * min(92vw, 440px)); margin-bottom: calc(-0.12 * min(92vw, 440px)); }
