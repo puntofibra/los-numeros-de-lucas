@@ -750,3 +750,4 @@ body, button, input, select, .btn, .titulo-pantalla, .cabecera h2, .btn-grande, 
 .carga-centro .titulo-img-wrap, .login-hero .titulo-img-wrap { width: min(92vw, 440px); margin-left: auto; margin-right: auto; }
 .carga-centro .barra-carga { margin-left: auto; margin-right: auto; }
 .titulo-img-wrap, .carga-centro .titulo-img-wrap, .login-hero .titulo-img-wrap { margin-top: calc(-0.13 * min(92vw, 440px)); margin-bottom: calc(-0.12 * min(92vw, 440px)); }
+.edades { grid-template-columns: repeat(5, 1fr); gap: 8px; }
