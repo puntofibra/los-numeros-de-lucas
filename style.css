@@ -739,3 +739,8 @@ body, button, input, select, .btn, .titulo-pantalla, .cabecera h2, .btn-grande, 
 .reto-lucas { width: 120px; }
 .mm-pt { letter-spacing: -2px; font-size: 20px !important; color: #ffb000; word-break: break-all; }
 .vis-suma .objs.mini { font-size: clamp(26px, 7.4vw, 42px); }
+
+/* título (imagen de Manu, sin recortar: se compensa el margen transparente) */
+.titulo-img-wrap { margin: -8% 0 -9%; width: 100%; max-width: 440px; text-align: center; line-height: 0; }
+.titulo-img-wrap.grande { max-width: 480px; }
+.titulo-img { width: 136%; margin-left: -18%; height: auto; filter: drop-shadow(0 0 18px rgba(23,255,95,.35)); animation: aparece .6s cubic-bezier(.3,1.6,.5,1); }
