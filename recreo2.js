@@ -44,7 +44,8 @@ const JUEGOS_EXTRA = { runner: () => juegoRunner(), garra: () => juegoGarra(), s
 })();
 
 /* ---------------- utilidades comunes ---------------- */
-const RC_F = '"Andika", "Fredoka", system-ui, sans-serif';
+const RC_F = '"NumCole", "Andika", "Fredoka", system-ui, sans-serif';
+try { document.fonts.load('700 20px NumCole', '0123456789'); } catch (e) {}
 const rcTx = s => document.body.classList.contains('mayus') ? String(s).toUpperCase() : String(s);
 const rcVidas = n => `<span class="rc-vidas">${'❤️'.repeat(Math.max(0, n))}${'🖤'.repeat(Math.max(0, 3 - n))}</span>`;
 const rcClamp = (v, a, b) => Math.max(a, Math.min(b, v));

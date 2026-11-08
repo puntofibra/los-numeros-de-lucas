@@ -1038,12 +1038,12 @@ RENDER.traza = (ej, E) => {
   let mask = null, S = 0, lw = 0;
   const letra = ej.x;
   const prepara = async () => {
-    try { await document.fonts.load('700 200px Andika'); } catch (e) {}
+    try { await Promise.all([document.fonts.load('700 200px Andika', '0123456789'), document.fonts.load('700 200px NumCole', '4')]); } catch (e) {}
     const r = W.getBoundingClientRect(); S = Math.round(r.width * devicePixelRatio);
     [guia, dib].forEach(c => { c.width = c.height = S; });
     const g = guia.getContext('2d');
     const fs = S * (letra.length > 1 ? .6 : .8);
-    g.font = `700 ${fs}px Andika, Fredoka, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = `700 ${fs}px NumCole, Andika, Fredoka, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = 'rgba(255,255,255,.13)'; g.fillText(letra, S / 2, S * .54);
     g.setLineDash([S * .02, S * .025]); g.lineWidth = S * .012; g.strokeStyle = 'rgba(23,255,95,.85)'; g.strokeText(letra, S / 2, S * .54);
     const off = document.createElement('canvas'); off.width = off.height = S; const o = off.getContext('2d');
