@@ -713,7 +713,7 @@ function pintaMapa() {
     b.style.left = pos[i].x + 'px'; b.style.top = pos[i].y + 'px'; b.style.setProperty('--c', p.color);
     const larga = p.letra.length > 3;
     b.innerHTML = `<img class="pimg" src="img/planetas/planeta${String(i + 1).padStart(2, '0')}.png" alt="" loading="lazy" decoding="async">
-      <span class="letra${larga ? ' larga' : ''}">${bloq ? '🔒' : p.letra}</span>
+      <span class="letra${larga ? ' larga' : ''}">${bloq ? '🔒' : ''}</span>
       ${pl.e ? `<span class="est">${[0, 1, 2].map(k => `<img src="img/estrella-${k < pl.e ? 'on' : 'off'}.png" alt="">`).join('')}</span>` : ''}
       <span class="nombre">${p.nombre}</span>`;
     b.onclick = async () => { SFX.clic(); if (bloq) { SFX.mal(); VOZ.decir('Ese planeta aún está bloqueado. ¡Completa el anterior para llegar!'); b.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 300); return; }
@@ -744,7 +744,7 @@ function pintaMapa() {
         ESTELA.stop(); nave.classList.remove('viajando'); nave.firstChild.dataset.fuerza = '1.4'; nave.style.transform = dx < 0 ? 'scaleX(-1)' : ''; MAPA.donde = act;
         if (dx < 0) setTimeout(() => ponTf(nave, ''), 150);
         destino.classList.remove('bloq', 'por-abrir'); destino.classList.add('recien');
-        destino.querySelector('.letra').textContent = PLANETAS[act].letra;
+        destino.querySelector('.letra').textContent = '';
         SFX.planeta(); FX.chispas(destino, 50); FX.confeti(90);
         setTimeout(() => VOZ.decir('¡Bienvenido al ' + PLANETAS[act].nombre + '!'), 700);
       }, 2300);
@@ -809,7 +809,7 @@ function volarA(i) {
 function abrePlaneta(i) {
   const p = PLANETAS[i], pl = datos().plan[i] || { m: 0, e: 0 };
   const esCuentos = i === 24, muestra = p.silabas.slice(0, 8);
-  modal(`<div class="modal-planeta"><div class="planeta" style="--c:${p.color}"><img class="pimg" src="img/planetas/planeta${String(i + 1).padStart(2, '0')}.png" alt=""><span class="letra${p.letra.length > 3 ? ' larga' : ''}">${p.letra}</span></div></div>
+  modal(`<div class="modal-planeta"><div class="planeta" style="--c:${p.color}"><img class="pimg" src="img/planetas/planeta${String(i + 1).padStart(2, '0')}.png" alt=""></div></div>
     <h2>${p.nombre}</h2>
     <p style="margin:0;color:var(--txt2)">${esCuentos ? 'Desafíos de todos los planetas' : 'Aprendemos: ' + p.tema}</p>
     ${muestra.length ? `<div class="silabas-muestra">${muestra.map(s => `<button data-s="${s}">${s}</button>`).join('')}</div>` : ''}

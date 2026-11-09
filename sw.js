@@ -1,5 +1,5 @@
 /* Los números de Lucas · service worker: red primero para el código, caché para imágenes */
-const V = 'ndl-v7';
+const V = 'ndl-v8';
 const BASE = ['./', 'index.html', 'style.css', 'app.js', 'extras.js', 'recreo2.js', 'engine.js', 'data.js', 'manifest.json', 'img/icon-192.png', 'img/logo-futurmovil.png', 'img/titulo.png', 'fonts/numeros-cole.woff2',
   'img/lucas/senala.png', 'img/lucas/propulsor.png', 'img/estrella-on.png', 'img/estrella-off.png', 'img/cofre.png', 'img/cofre-abierto.png', 'img/lucas/vuela.png', 'img/lucas/caido.png', 'img/lucas/senala-capa.png', 'img/lucas/gamer.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(BASE.map(u => new Request(u, { cache: 'no-cache' })))).then(() => self.skipWaiting())); });
