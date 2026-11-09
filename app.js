@@ -1524,12 +1524,12 @@ var ACT = (() => {
   /* Solo recarga si cambia el número de version.json (antes comparaba cabeceras
      de GitHub, que a veces cambian solas y provocaban recargas sin motivo). */
   /* APP_V = versión de este código (igual que version.json al subirlo). Si el servidor tiene otra, se recarga. */
-  const APP_V = '13';
+  const APP_V = '14';
   let ver = APP_V, pendiente = false, mirando = false;
   async function leeVersion() {
     try { const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return null; const j = await r.json(); return j && j.v ? String(j.v) : null; } catch (e) { return null; }
   }
-  function seguro() { return ['pMapa', 'pPerfiles', 'pLogin', 'pAlbum'].includes(pantallaActual) && !document.querySelector('#modal:not(.oculto)') && !document.querySelector('.nave-mapa.viajando'); }
+  function seguro() { return (['pMapa', 'pPerfiles', 'pLogin', 'pAlbum'].includes(pantallaActual) || (pantallaActual === 'pRecreo' && typeof REC !== 'undefined' && !REC.fin)) && !document.querySelector('#modal:not(.oculto)') && !document.querySelector('.nave-mapa.viajando'); }
   function recargar() {
     if (NINO && NINO.id) LS.set('volverNino', NINO.id);
     if (VIAJE) LS.set('viaje', VIAJE);

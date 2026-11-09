@@ -149,7 +149,7 @@ function juegoGarra() {
   const lv = nivelActual(); let rt = null;
   const E = rcEscena(`<span>⏱️ <b id="gaT">75</b></span><span class="rc-obj" id="gaObj"></span><span>⭐ <b id="gaP">0</b></span>`);
   const { x } = E, est = rcEstrellas(60), L = [];
-  let t = 75, pts = 0, combo = 0, vivo = true, aciertos = 0, fase = 0, ang = 0, len = 34, estado = 'osc', carga = null, obj = null, ult = null, rocas = [], diana = null;
+  let t = 75, pts = 0, combo = 0, vivo = true, aciertos = 0, fase = 0, ang = 0, len = 34, estado = 'osc', carga = null, obj = null, ult = null, rocas = [], diana = null, cola = null;
   const LMIN = 34, anchoPj = Math.min(80, E.W * .2);
   const pj = rcRobot(E, 'vuela', anchoPj);
   const O = () => ({ x: E.W / 2, y: 92 });
@@ -181,19 +181,20 @@ function juegoGarra() {
   }
   /* El niño toca el meteorito que quiere: la garra apunta sola hacia él y solo coge ese (atraviesa los demás).
      Si toca en un hueco, la garra baja hacia donde ha tocado. */
+  function lanzaA(m) { const o = O(); diana = m; ang = Math.atan2(m.x - o.x, m.y - o.y); len = LMIN; estado = 'baja'; SFX.woosh(); }
   E.S.onpointerdown = e => {
-    if (!vivo || estado !== 'osc') return;
-    const o = O();
+    if (!vivo) return;
+    let m = null;
     if (e && e.clientX != null) {
       const r = E.S.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
-      const m = rocas.filter(m => m.ap > .5).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py))[0];
-      if (m && Math.hypot(m.x - px, m.y - py) < m.r + 22) { diana = m; ang = Math.atan2(m.x - o.x, m.y - o.y); }
-      else if (py > o.y + 10) { diana = null; ang = Math.atan2(px - o.x, py - o.y); }
-      else diana = null;
+      m = rocas.filter(k => k.ap > .5 && k !== carga).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py))[0];
+      if (m && Math.hypot(m.x - px, m.y - py) > m.r + 30) m = null;
     }
-    estado = 'baja'; SFX.woosh();
+    if (!m) return;                       // solo se lanza tocando una roca
+    if (carga) { cola = m; return; }      // está subiendo una roca: irá a por esta justo después
+    lanzaA(m);                            // esté donde esté la garra, va directa a la roca tocada
   };
-  const tecla = e => { if (e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); E.S.onpointerdown(); } };
+  const tecla = () => {};
   document.addEventListener('keydown', tecla);
 
   function resuelve(m) {
@@ -236,12 +237,12 @@ function juegoGarra() {
       else if (estado === 'baja') {
         len += (430 + (NINO.edad >= 7 ? 60 : 0)) * dt;
         const tx = o.x + Math.sin(ang) * len, ty = o.y + Math.cos(ang) * len;
-        const m = diana ? (Math.hypot(diana.x - tx, diana.y - ty) < diana.r + 6 ? diana : null) : rocas.find(m => Math.hypot(m.x - tx, m.y - ty) < m.r + 6);
+        const m = diana && (Math.hypot(diana.x - tx, diana.y - ty) < diana.r + 6 || len >= Math.hypot(diana.x - o.x, diana.y - o.y)) ? diana : null;
         if (m) { carga = m; estado = 'sube'; SFX.pop(); }
         else if (tx < -10 || tx > W + 10 || ty > H + 10) estado = 'sube';
       } else if (estado === 'sube') {
         len -= (carga ? (carga.bonus ? 520 : rcClamp(560 - carga.r * 7, 200, 420)) : 640) * dt;
-        if (len <= LMIN) { len = LMIN; estado = 'osc'; diana = null; fase = Math.asin(rcClamp(ang / 1.15, -1, 1)); if (carga) { const c = carga; carga = null; resuelve(c); } }
+        if (len <= LMIN) { len = LMIN; estado = 'osc'; diana = null; fase = Math.asin(rcClamp(ang / 1.15, -1, 1)); if (carga) { const c = carga; carga = null; resuelve(c); } if (cola && rocas.includes(cola)) { const q = cola; cola = null; lanzaA(q); } else cola = null; }
       }
     }
     const tx = o.x + Math.sin(ang) * len, ty = o.y + Math.cos(ang) * len;
