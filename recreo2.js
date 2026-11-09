@@ -1,19 +1,15 @@
 /* =====================================================================
    LOS NÚMEROS DE LUCAS · Recreo PRO — 4 minijuegos arcade de matemáticas
-   4 · Lucas Runner       — cruza el portal del resultado correcto
    5 · Garra espacial     — pesca el meteorito con el resultado
-   6 · Serpiente numérica — come los números de la serie en orden
    7 · Marcianos del cráter — machaca solo a los marcianos buenos (+ jefe final)
    Usa lo de extras.js: JUEGOS, finJuego, REC, retoRecreo, malasRecreo
    ===================================================================== */
 'use strict';
 
 JUEGOS.push(
-  { id: 'runner', n: 'Lucas Runner', e: '🚀', d: 'Esquiva asteroides y cruza el portal del resultado correcto.' },
   { id: 'garra', n: 'Garra espacial', e: '🦾', d: 'Lanza la garra y pesca el meteorito con el resultado.' },
-  { id: 'serpiente', n: 'Serpiente numérica', e: '🐍', d: 'Come los números de la serie en orden.' },
   { id: 'marcianos', n: 'Marcianos del cráter', e: '👾', d: '¡Pam! Golpea a los marcianos con el número bueno y vence al jefe.' });
-const JUEGOS_EXTRA = { runner: () => juegoRunner(), garra: () => juegoGarra(), serpiente: () => juegoSerpiente(), marcianos: () => juegoMarcianos() };
+const JUEGOS_EXTRA = { garra: () => juegoGarra(), marcianos: () => juegoMarcianos() };
 
 /* ---------------- estilos ---------------- */
 (function () {
@@ -147,131 +143,13 @@ function rcCab(sel, rt) {
 const rcFin = (txt, pts) => Math.min(25, 5 + Math.round(pts / 10));
 
 /* =====================================================================
-   4 · LUCAS RUNNER — 3 carriles, portales con palabras, asteroides y estrellas
-   ===================================================================== */
-function juegoRunner() {
-  const lv = nivelActual();
-  const META = 15;
-  const E = rcEscena(`<span id="ruV">${rcVidas(3)}</span><span class="rc-obj" id="ruObj"></span><span>⭐ <b id="ruP">0</b></span>`);
-  const { x } = E, est = rcEstrellas(80), L = [];
-  let vidas = 3, pts = 0, combo = 0, hechas = 0, vivo = true, inv = 0, carril = 1, yPj = 0, vel = 150 + (NINO.edad >= 7 ? 35 : NINO.edad <= 5 ? -15 : 0);
-  let obs = [], obj = null, ult = null, dist = -280, ciclo = 0, flags = {}, meta = null;
-  const anchoPj = Math.min(96, E.W * .22);
-  const pj = rcRobot(E, 'vuela', anchoPj);
-  const xPj = () => E.W * .18, yC = c => E.H * (.2 + c * .3);
-  yPj = yC(1);
-  const gap = () => Math.max(560, E.W * 1.25);
-
-  function nuevaPuerta() {
-    const rt = retoRecreo(lv), ok = rt.r, ops = ENG.shuffle([ok, ...malasRecreo(ok, 2)]);
-    ult = ok; obj = ok;
-    obs.push({ t: 'puerta', x: E.W + 70, ops, ok, rt, res: -1, hecha: false });
-    rcCab('#ruObj', rt);
-  }
-  const lbl = o => String(o);
-  function aCarril(c) { c = rcClamp(c, 0, 2); if (c !== carril) { carril = c; SFX.pieza(); } }
-  E.S.onpointerdown = e => { if (!vivo) return; const r = E.S.getBoundingClientRect(); aCarril(Math.floor((e.clientY - r.top) / (r.height / 3))); };
-  const tecla = e => { if (!vivo) return; if (e.key === 'ArrowUp') { aCarril(carril - 1); e.preventDefault(); } if (e.key === 'ArrowDown') { aCarril(carril + 1); e.preventDefault(); } };
-  document.addEventListener('keydown', tecla);
-
-  function golpe(txt) {
-    vidas--; combo = 0; inv = 1.4; $('#ruV').innerHTML = rcVidas(vidas); SFX.mal(); rcSacude(E);
-    rcFlota(L, txt || '¡Ay!', xPj() + 30, yPj - 40, '#ff4d5e');
-    if (vidas <= 0) acabar();
-  }
-  function bucle(dt, t) {
-    const W = E.W, H = E.H, xp = xPj();
-    if (vivo && !meta) { vel = Math.min(340, vel + dt * 1.2); dist += vel * dt; }
-    /* programación: puerta → estrellas → asteroide → estrellas → puerta... */
-    if (vivo && !meta) {
-      const g = gap(), fase = dist - ciclo * g;
-      if (!flags.p && fase >= 0 && hechas + obs.filter(o => o.t === 'puerta').length < META) { flags.p = 1; nuevaPuerta(); }
-      if (!flags.e1 && fase > g * .3) { flags.e1 = 1; const c = Math.floor(Math.random() * 3); for (let i = 0; i < 3; i++) obs.push({ t: 'est', x: W + 40 + i * 46, c, f: i }); }
-      if (!flags.a && fase > g * .55) { flags.a = 1; const c = Math.floor(Math.random() * 3); obs.push({ t: 'ast', x: W + 60, c, r: 24 + Math.random() * 10, rot: 0, vr: (Math.random() - .5) * 3, forma: rcRoca() }); if (hechas > 4 && Math.random() < .5) obs.push({ t: 'ast', x: W + 230, c: (c + 1 + Math.floor(Math.random() * 2)) % 3, r: 22 + Math.random() * 8, rot: 0, vr: (Math.random() - .5) * 3, forma: rcRoca() }); }
-      if (!flags.e2 && fase > g * .8) { flags.e2 = 1; const c = Math.floor(Math.random() * 3); for (let i = 0; i < 2; i++) obs.push({ t: 'est', x: W + 40 + i * 46, c, f: i }); }
-      if (fase >= g) { ciclo++; flags = {}; }
-      if (hechas >= META && !obs.some(o => o.t === 'puerta') && !meta) { meta = { x: W + 80 }; }
-    }
-    rcFondo(E, est, (meta && meta.x < xp) ? 0 : vel * dt, t);
-    /* carriles */
-    for (let c = 0; c < 3; c++) { x.strokeStyle = 'rgba(24,224,255,.08)'; x.lineWidth = 2; x.setLineDash([18, 22]); x.lineDashOffset = (dist % 40); x.beginPath(); x.moveTo(0, yC(c)); x.lineTo(W, yC(c)); x.stroke(); }
-    x.setLineDash([]);
-    /* objetos */
-    const mov = vivo && !(meta && meta.x <= xp) ? vel * dt : 0;
-    for (const o of obs) {
-      o.x -= mov;
-      if (o.t === 'puerta') {
-        if (!o.hecha && o.x <= xp) {
-          o.hecha = true; o.res = carril;
-          if (o.ops[carril] === o.ok) {
-            hechas++; combo++; const p = 10 + Math.min(combo, 5) * 2; pts += p; $('#ruP').textContent = pts;
-            SFX.ok(); rcChispas(E, xp + 20, yC(carril), 22); rcFlota(L, '+' + p, xp + 40, yC(carril) - 50);
-            VOZ.decir(o.rt.oral ? String(o.ok) : o.rt.voz + ', ' + o.ok, { rate: .95 });
-          } else {
-            hechas++; golpe('¡Ahí no!');
-            if (vidas > 0) VOZ.decir('Era el ' + o.ok + '.', { rate: .9 });
-          }
-        }
-        const ry = Math.min(E.H * .12, 54);
-        o.ops.forEach((op, c) => {
-          const cy = yC(c), es = o.res === c, okC = op === o.ok;
-          const col = o.res < 0 ? `hsl(${(t * 80 + c * 120) % 360},100%,60%)` : (es ? (okC ? '#17ff5f' : '#ff4d5e') : 'rgba(150,170,200,.4)');
-          x.save(); x.translate(o.x, cy);
-          const g2 = x.createRadialGradient(0, 0, 2, 0, 0, ry); g2.addColorStop(0, 'rgba(255,255,255,.35)'); g2.addColorStop(.6, 'rgba(139,92,255,.25)'); g2.addColorStop(1, 'rgba(24,224,255,0)');
-          x.fillStyle = g2; x.beginPath(); x.ellipse(0, 0, 24, ry, 0, 0, 7); x.fill();
-          x.strokeStyle = col; x.lineWidth = 6; x.shadowColor = col; x.shadowBlur = 18; x.beginPath(); x.ellipse(0, 0, 24, ry, 0, 0, 7); x.stroke();
-          x.lineWidth = 2; x.globalAlpha = .6; x.beginPath(); x.ellipse(0, 0, 14, ry * .7, Math.sin(t * 3 + c) * .2, 0, 7); x.stroke();
-          x.restore();
-          rcCartel(x, lbl(op), o.x, cy, 28, { borde: es ? (okC ? '#17ff5f' : '#ff4d5e') : 'rgba(24,224,255,.8)', glow: es ? (okC ? '#17ff5f' : '#ff4d5e') : null });
-        });
-      } else if (o.t === 'ast') {
-        o.rot += o.vr * dt; const cy = yC(o.c);
-        x.save(); x.translate(o.x, cy); x.rotate(o.rot); x.shadowColor = '#ff8a3d'; x.shadowBlur = 10; rcPintaRoca(x, o.forma, o.r); x.restore();
-        if (!o.tocado && inv <= 0 && vivo && Math.abs(o.x - xp) < o.r + anchoPj * .3 && Math.abs(cy - yPj) < o.r + 22) { o.tocado = true; golpe('¡Pum!'); rcChispas(E, o.x, cy, 14, '#ff8a3d'); }
-      } else if (o.t === 'est') {
-        if (o.cogida) continue;
-        const cy = yC(o.c) + Math.sin(t * 4 + o.f) * 4;
-        x.save(); x.translate(o.x, cy); x.scale(Math.abs(Math.cos(t * 3 + o.f)) * .7 + .3, 1); x.fillStyle = '#ffd23f'; x.shadowColor = '#ffb000'; x.shadowBlur = 14; rcEstrella(x, 13); x.fill(); x.restore();
-        if (vivo && Math.abs(o.x - xp) < 30 && Math.abs(cy - yPj) < 34) { o.cogida = true; pts += 2; $('#ruP').textContent = pts; SFX.moneda(); rcFlota(L, '+2', o.x, cy - 20, '#ffd23f', 20); }
-      }
-    }
-    obs = obs.filter(o => o.x > -90 && !(o.t === 'est' && o.cogida));
-    /* meta */
-    if (meta) {
-      if (meta.x > xp) meta.x -= vel * dt;
-      for (let i = 0; i < 12; i++) { x.fillStyle = i % 2 ? '#fff' : '#111'; x.fillRect(meta.x, i * E.H / 12, 14, E.H / 12); x.fillStyle = i % 2 ? '#111' : '#fff'; x.fillRect(meta.x + 14, i * E.H / 12, 14, E.H / 12); }
-      if (meta.x <= xp && vivo) { pts += 50; $('#ruP').textContent = pts; FX.confeti(100); acabar(true); }
-    }
-    /* barra de progreso */
-    x.fillStyle = 'rgba(255,255,255,.12)'; rcRR(x, 12, 8, W - 24, 6, 3); x.fill();
-    x.fillStyle = '#17ff5f'; x.shadowColor = '#17ff5f'; x.shadowBlur = 8; rcRR(x, 12, 8, (W - 24) * Math.min(1, hechas / META), 6, 3); x.fill(); x.shadowBlur = 0;
-    x.font = `700 13px ${RC_F}`; x.fillStyle = 'rgba(255,255,255,.7)'; x.textAlign = 'right'; x.textBaseline = 'top'; x.fillText('🏁 ' + hechas + '/' + META, W - 14, 18);
-    rcPintaFlota(x, L, dt);
-    /* Lucas */
-    if (inv > 0) inv -= dt;
-    const yt = yC(carril); yPj += (yt - yPj) * Math.min(1, dt * 12);
-    pj.pon(xp, yPj + Math.sin(t * 5) * 3, (yt - yPj) * .004);
-    pj.style.opacity = inv > 0 && Math.floor(inv * 10) % 2 ? .35 : 1;
-  }
-  const para = rcBucle(E, bucle);
-  function acabar(gano, salir) {
-    if (!vivo) return; vivo = false; REC.fin = null; document.removeEventListener('keydown', tecla); E.quita();
-    if (salir) { para(); return; }
-    setTimeout(() => { para(); finJuego('runner', pts, gano ? '¡Has llegado a la meta, piloto!' : hechas >= 8 ? '¡Qué buen vuelo!' : '¡Buen intento, piloto!', rcFin('', pts) + (gano ? 5 : 0)); }, 900);
-  }
-  E.alPerder = () => acabar(false, true);
-  REC.fin = () => acabar(false, true);
-  VOZ.decir('¡Despegamos! Toca arriba, en medio o abajo para mover a tu robot. Cruza el portal del resultado correcto.');
-}
-
-/* =====================================================================
    5 · GARRA ESPACIAL — la garra oscila, toca para lanzarla
    ===================================================================== */
 function juegoGarra() {
   const lv = nivelActual(); let rt = null;
   const E = rcEscena(`<span>⏱️ <b id="gaT">75</b></span><span class="rc-obj" id="gaObj"></span><span>⭐ <b id="gaP">0</b></span>`);
   const { x } = E, est = rcEstrellas(60), L = [];
-  let t = 75, pts = 0, combo = 0, vivo = true, aciertos = 0, fase = 0, ang = 0, len = 34, estado = 'osc', carga = null, obj = null, ult = null, rocas = [];
+  let t = 75, pts = 0, combo = 0, vivo = true, aciertos = 0, fase = 0, ang = 0, len = 34, estado = 'osc', carga = null, obj = null, ult = null, rocas = [], diana = null;
   const LMIN = 34, anchoPj = Math.min(80, E.W * .2);
   const pj = rcRobot(E, 'vuela', anchoPj);
   const O = () => ({ x: E.W / 2, y: 92 });
@@ -301,7 +179,20 @@ function juegoGarra() {
     normales.forEach(m => { if (rocas.some(n => n !== m && Math.hypot(n.x - m.x, n.y - m.y) < n.r + m.r + 6)) { const ow = rocas.indexOf(m); rocas.splice(ow, 1); const p = hueco(m.r); if (p) { m.x = p.x; m.y = p.y; } rocas.push(m); } });
     rcCab('#gaObj', rt);
   }
-  E.S.onpointerdown = () => { if (vivo && estado === 'osc') { estado = 'baja'; SFX.woosh(); } };
+  /* El niño toca el meteorito que quiere: la garra apunta sola hacia él y solo coge ese (atraviesa los demás).
+     Si toca en un hueco, la garra baja hacia donde ha tocado. */
+  E.S.onpointerdown = e => {
+    if (!vivo || estado !== 'osc') return;
+    const o = O();
+    if (e && e.clientX != null) {
+      const r = E.S.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+      const m = rocas.filter(m => m.ap > .5).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py))[0];
+      if (m && Math.hypot(m.x - px, m.y - py) < m.r + 22) { diana = m; ang = Math.atan2(m.x - o.x, m.y - o.y); }
+      else if (py > o.y + 10) { diana = null; ang = Math.atan2(px - o.x, py - o.y); }
+      else diana = null;
+    }
+    estado = 'baja'; SFX.woosh();
+  };
   const tecla = e => { if (e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); E.S.onpointerdown(); } };
   document.addEventListener('keydown', tecla);
 
@@ -345,12 +236,12 @@ function juegoGarra() {
       else if (estado === 'baja') {
         len += (430 + (NINO.edad >= 7 ? 60 : 0)) * dt;
         const tx = o.x + Math.sin(ang) * len, ty = o.y + Math.cos(ang) * len;
-        const m = rocas.find(m => Math.hypot(m.x - tx, m.y - ty) < m.r + 6);
+        const m = diana ? (Math.hypot(diana.x - tx, diana.y - ty) < diana.r + 6 ? diana : null) : rocas.find(m => Math.hypot(m.x - tx, m.y - ty) < m.r + 6);
         if (m) { carga = m; estado = 'sube'; SFX.pop(); }
         else if (tx < -10 || tx > W + 10 || ty > H + 10) estado = 'sube';
       } else if (estado === 'sube') {
         len -= (carga ? (carga.bonus ? 520 : rcClamp(560 - carga.r * 7, 200, 420)) : 640) * dt;
-        if (len <= LMIN) { len = LMIN; estado = 'osc'; if (carga) { const c = carga; carga = null; resuelve(c); } }
+        if (len <= LMIN) { len = LMIN; estado = 'osc'; diana = null; fase = Math.asin(rcClamp(ang / 1.15, -1, 1)); if (carga) { const c = carga; carga = null; resuelve(c); } }
       }
     }
     const tx = o.x + Math.sin(ang) * len, ty = o.y + Math.cos(ang) * len;
@@ -376,153 +267,7 @@ function juegoGarra() {
   }
   E.alPerder = () => acabar(true);
   REC.fin = () => acabar(true);
-  VOZ.decir('La garra se mueve sola. Toca la pantalla para lanzarla y pesca el meteorito con el resultado correcto.');
-}
-
-/* =====================================================================
-   6 · SERPIENTE DE SÍLABAS — come las sílabas en orden (sin choques: es para peques)
-   ===================================================================== */
-function juegoSerpiente() {
-  const lv = nivelActual(), cfgS = ENG.cfgDe(lv);
-  const modo = 'serie';
-  const E = rcEscena(`<span id="seV">${rcVidas(3)}</span><span class="rc-obj" id="seObj"></span><span>⏱️ <b id="seT">90</b></span>`);
-  const { x } = E, est = rcEstrellas(50), L = [];
-  let t = 90, vidas = 3, pts = 0, palabras = 0, fallosPal = 0, vivo = true, pausa = 0;
-  let cols, rows, cell, oy;
-  const calc = () => { cols = rcClamp(Math.round(E.W / 46), 7, 12); cell = E.W / cols; rows = Math.max(7, Math.floor(E.H / cell)); oy = (E.H - rows * cell) / 2; };
-  calc();
-  let serp = [], prev = [], dir = { x: 1, y: 0 }, cola = [], crecer = 0, acc = 0, fichas = [], pal = null, ult = null;
-  let paso = NINO.edad <= 5 ? .46 : NINO.edad >= 7 ? .33 : .39;
-  const cx0 = Math.floor(cols / 2), cy0 = Math.floor(rows / 2);
-  for (let i = 0; i < 3; i++) serp.push({ x: cx0 - i, y: cy0 });
-  prev = serp.map(p => ({ ...p }));
-  E.alTam = () => { const oc = cols, or = rows; calc(); if (oc !== cols || or !== rows) { serp.forEach(p => { p.x = Math.min(p.x, cols - 1); p.y = Math.min(p.y, rows - 1); }); prev = serp.map(p => ({ ...p })); fichas.forEach(f => { f.x = Math.min(f.x, cols - 1); f.y = Math.min(f.y, rows - 1); }); } };
-  /* cabeza: imagen del robot del niño */
-  const im = imgPj(NINO.color, 'vuela'), img = new Image(); img.src = im.src;
-  const colPj = (typeof colorDe === 'function' ? colorDe(NINO.color).c : '#17ff5f');
-  let mira = 1;
-
-  /* serie de números: de 1 en 1 (peques), de 2, 5 o 10 en 10, o de la tabla del planeta */
-  function nuevaPalabra() {
-    const largo = NINO.edad <= 5 ? 3 : 4;
-    let pasoS = lv >= 20 ? pick(cfgS.tablas || [2, 5, 10]) : lv >= 13 ? pick([2, 5, 10, 2]) : lv >= 8 ? pick([1, 1, 2]) : 1;
-    const hi = Math.max(6, Math.min(cfgS.hi || 10, 100));
-    let ini = lv >= 20 ? pasoS * ENG.ent(0, 5) : ENG.ent(lv < 4 ? 1 : 0, Math.max(1, hi - pasoS * largo));
-    if (pasoS >= 5 && lv < 20) ini = Math.floor(ini / pasoS) * pasoS;
-    let sr = Array.from({ length: largo }, (_, k) => ini + k * pasoS);
-    if (lv >= 13 && NINO.edad >= 7 && Math.random() < .3) sr = sr.reverse();
-    if (ult && ult.join() === sr.join()) sr = sr.map(v => v + pasoS);
-    ult = sr; pal = { s: sr.map(String), w: sr.join(', '), paso: sr[1] - sr[0], i: 0 };
-    fallosPal = 0; pintaObj(); ponFichas();
-    VOZ.decir('Empieza en el ' + sr[0] + (Math.abs(pal.paso) > 1 ? ', y cuenta de ' + Math.abs(pal.paso) + ' en ' + Math.abs(pal.paso) + (pal.paso < 0 ? ' hacia atrás.' : '.') : (pal.paso < 0 ? ' y cuenta hacia atrás.' : ' y sigue contando.')), { rate: .9, cola: true });
-  }
-  function pintaObj() {
-    const sl = pal.s.map((s, i) => i < pal.i ? `<b>${s}</b>` : i === 0 ? `<u>${s}</u>` : '<i>?</i>').join('');
-    $('#seObj').innerHTML = `<span class="rc-regla">${pal.paso > 0 ? '+' : '−'}${Math.abs(pal.paso)}</span><span class="rc-slots">${sl}</span>`;
-  }
-  function libre(px, py) { return !serp.some(p => p.x === px && p.y === py) && !fichas.some(f => f.x === px && f.y === py); }
-  function sitio() {
-    const h = serp[0];
-    for (let k = 0; k < 200; k++) { const px = Math.floor(Math.random() * cols), py = Math.floor(Math.random() * rows); if (libre(px, py) && Math.abs(px - h.x) + Math.abs(py - h.y) >= 3) return { x: px, y: py }; }
-    for (let px = 0; px < cols; px++) for (let py = 0; py < rows; py++) if (libre(px, py)) return { x: px, y: py };
-    return { x: 0, y: 0 };
-  }
-  function ponFichas() {
-    fichas = [];
-    const sig = pal.s[pal.i], n = +sig;
-    const malas = ENG.shuffle([...new Set([n + 1, n - 1, n + Math.abs(pal.paso) + 1, n - Math.abs(pal.paso), n + 2, n + 10, ...pal.s.filter((s, i) => i > pal.i).map(Number)])]
-      .filter(v => v >= 0 && v !== n)).slice(0, NINO.edad <= 5 ? 2 : 3).map(String);
-    [sig, ...malas].forEach(s => { const p = sitio(); fichas.push({ ...p, s, ap: 0, f: Math.random() * 7 }); });
-  }
-  function giro(d) {
-    const ultD = cola.length ? cola[cola.length - 1] : dir;
-    if ((d.x === -ultD.x && d.y === -ultD.y) || (d.x === ultD.x && d.y === ultD.y)) return;
-    if (cola.length < 2) cola.push(d);
-  }
-  let pd = null;
-  E.S.onpointerdown = e => { pd = { x: e.clientX, y: e.clientY }; };
-  E.S.onpointerup = e => {
-    if (!pd || !vivo) return; const dx = e.clientX - pd.x, dy = e.clientY - pd.y; pd = null;
-    if (Math.hypot(dx, dy) > 22) { giro(Math.abs(dx) > Math.abs(dy) ? { x: Math.sign(dx), y: 0 } : { x: 0, y: Math.sign(dy) }); return; }
-    const r = E.S.getBoundingClientRect(), h = serp[0], hx = r.left + (h.x + .5) * cell, hy = r.top + oy + (h.y + .5) * cell;
-    const ex = e.clientX - hx, ey = e.clientY - hy;
-    const ultD = cola.length ? cola[cola.length - 1] : dir;
-    if (ultD.x !== 0) giro({ x: 0, y: Math.sign(ey) || 1 }); else giro({ x: Math.sign(ex) || 1, y: 0 });
-  };
-  const tecla = e => { const m = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key]; if (m && vivo) { e.preventDefault(); giro({ x: m[0], y: m[1] }); } };
-  document.addEventListener('keydown', tecla);
-
-  function avanza() {
-    if (cola.length) dir = cola.shift();
-    if (dir.x) mira = dir.x;
-    prev = serp.map(p => ({ ...p }));
-    const h = serp[0], n = { x: (h.x + dir.x + cols) % cols, y: (h.y + dir.y + rows) % rows };
-    serp.unshift(n);
-    if (crecer > 0) { crecer--; prev.push({ ...prev[prev.length - 1] }); } else serp.pop();
-    const fi = fichas.findIndex(f => f.x === n.x && f.y === n.y);
-    if (fi < 0) return;
-    const f = fichas[fi], px = (n.x + .5) * cell, py = oy + (n.y + .5) * cell;
-    if (f.s === pal.s[pal.i]) {
-      pal.i++; crecer++; SFX.pieza(); rcChispas(E, px, py, 14); fichas.splice(fi, 1);
-      VOZ.decir(f.s, { rate: 1 });
-      if (pal.i >= pal.s.length) {
-        palabras++; const p = 10 * pal.s.length + (fallosPal ? 0 : 5); pts += p; pintaObj();
-        rcFlota(L, '¡Serie! +' + p, E.W / 2, E.H * .35, '#17ff5f', 30);
-        SFX.ok();
-        VOZ.decir(pal.w + '.', { rate: .95, cola: true });
-        fichas = []; pausa = .9; paso = Math.max(.24, paso - .012);
-        setTimeout(() => { if (vivo) nuevaPalabra(); }, 900);
-      } else { pintaObj(); ponFichas(); }
-    } else {
-      vidas--; fallosPal++; $('#seV').innerHTML = rcVidas(vidas); SFX.mal(); rcSacude(E); rcFlota(L, '¡Uy!', px, py - 20, '#ff4d5e');
-      const p = sitio(); f.x = p.x; f.y = p.y; f.ap = 0;
-      if (vidas <= 0) { acabar(); return; }
-      VOZ.decir('Ese es el ' + f.s + '. Busca el ' + pal.s[pal.i] + '.', { rate: .9 });
-    }
-  }
-  function bucle(dt, tt) {
-    const W = E.W, H = E.H;
-    if (vivo) { t -= dt; $('#seT').textContent = Math.max(0, Math.ceil(t)); if (t <= 0) { acabar(); } }
-    if (vivo) { if (pausa > 0) pausa -= dt; else { acc += dt; while (acc >= paso) { acc -= paso; avanza(); if (!vivo) break; } } }
-    rcFondo(E, est, 0, tt, '#06142e', '#140a33');
-    /* rejilla */
-    x.fillStyle = 'rgba(24,224,255,.12)';
-    for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++) { x.beginPath(); x.arc(i * cell, oy + j * cell, 1.3, 0, 7); x.fill(); }
-    /* fichas */
-    for (const f of fichas) {
-      f.ap = Math.min(1, f.ap + dt * 3);
-      const px = (f.x + .5) * cell, py = oy + (f.y + .5) * cell + Math.sin(tt * 3 + f.f) * 2, r = Math.max(3, cell * .47 * (f.ap < 1 ? f.ap * (1.25 - .25 * f.ap) : 1));
-      const g = x.createRadialGradient(px - r * .3, py - r * .3, 1, px, py, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#bfe9ff');
-      x.save(); x.shadowColor = '#18e0ff'; x.shadowBlur = 14; x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); x.restore();
-      x.strokeStyle = 'rgba(24,224,255,.9)'; x.lineWidth = 2; x.beginPath(); x.arc(px, py, r, 0, 7); x.stroke();
-      const txt = rcTx(f.s); let fs = cell * .44; x.font = `700 ${fs}px ${RC_F}`; while (x.measureText(txt).width > r * 1.8 && fs > 10) { fs -= 1; x.font = `700 ${fs}px ${RC_F}`; }
-      x.fillStyle = '#0b1633'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(txt, px, py + 1);
-    }
-    /* cuerpo (de la cola a la cabeza) con movimiento suave */
-    const fr = pausa > 0 ? 1 : Math.min(1, acc / paso);
-    const pos = serp.map((p, i) => { const q = prev[i] || p; let X = q.x + (p.x - q.x) * fr, Y = q.y + (p.y - q.y) * fr; if (Math.abs(p.x - q.x) > 1) X = p.x; if (Math.abs(p.y - q.y) > 1) Y = p.y; return { X: (X + .5) * cell, Y: oy + (Y + .5) * cell }; });
-    for (let i = pos.length - 1; i >= 1; i--) {
-      const p = pos[i], k = 1 - i / (pos.length + 2), r = cell * (.22 + .18 * k);
-      x.save(); x.globalAlpha = .55 + .45 * k; x.shadowColor = colPj; x.shadowBlur = 16; x.fillStyle = colPj; x.beginPath(); x.arc(p.X, p.Y, r, 0, 7); x.fill();
-      x.fillStyle = 'rgba(255,255,255,.6)'; x.beginPath(); x.arc(p.X - r * .3, p.Y - r * .3, r * .32, 0, 7); x.fill(); x.restore();
-    }
-    const h = pos[0];
-    x.save(); x.translate(h.X, h.Y); x.scale(mira, 1);
-    if (img.complete && img.naturalWidth) { const w = cell * 1.55, hh = w * img.naturalHeight / img.naturalWidth; try { if ('filter' in x) x.filter = im.filter || 'none'; } catch (e) {} x.drawImage(img, -w / 2, -hh / 2 + Math.sin(tt * 6) * 2, w, hh); try { x.filter = 'none'; } catch (e) {} }
-    else { x.fillStyle = colPj; x.beginPath(); x.arc(0, 0, cell * .45, 0, 7); x.fill(); }
-    x.restore();
-    rcPintaFlota(x, L, dt);
-  }
-  nuevaPalabra();
-  const para = rcBucle(E, bucle);
-  function acabar(salir) {
-    if (!vivo) return; vivo = false; REC.fin = null; document.removeEventListener('keydown', tecla); E.quita();
-    if (salir) { para(); return; }
-    setTimeout(() => { para(); finJuego('serpiente', pts, palabras >= 8 ? '¡Serpiente maestra de los números!' : palabras >= 4 ? '¡Qué bien cuentas!' : '¡Buen intento!', rcFin('', pts)); }, 700);
-  }
-  E.alPerder = () => acabar(true);
-  REC.fin = () => acabar(true);
-  VOZ.decir('Desliza el dedo o toca hacia donde quieras ir. Come los números de la serie en orden.');
+  VOZ.decir('Toca el meteorito que tiene el resultado correcto y la garra irá a por él.');
 }
 
 /* =====================================================================
