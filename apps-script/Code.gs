@@ -256,7 +256,7 @@ function resumenSemanal(soloEmail) {
   if (soloEmail && typeof soloEmail !== 'string') soloEmail = null;   // al lanzarlo el aviso automático llega un objeto
   const usuarios = hUsuarios_().getDataRange().getValues().slice(1).filter(u => !soloEmail || String(u[0]).toLowerCase() === soloEmail);
   const ninos = hNinos_().getDataRange().getValues().slice(1);
-  const PL = ['números 1-5', 'números hasta 10', 'más, menos e igual', 'formas y series', 'sumas hasta 5', 'restas hasta 5', 'sumas hasta 10', 'restas hasta 10', 'números hasta 20', 'decenas y unidades', 'sumas hasta 20', 'restas hasta 20', 'números hasta 100', 'pares e impares', 'sumas de dos cifras', 'restas de dos cifras', 'el dinero', 'la hora', 'sumas llevando', 'restas llevando', 'tablas del 2, 5 y 10', 'tablas del 3 y 4', 'tablas del 6 al 9', 'problemas', 'desafíos de genio'];
+  const PL = ['números 1-5', 'números hasta 10', 'más, menos e igual', 'formas y series', 'sumas hasta 5', 'restas hasta 5', 'sumas hasta 10', 'restas hasta 10', 'números hasta 20', 'decenas y unidades', 'sumas hasta 20', 'restas hasta 20', 'números hasta 100', 'pares e impares', 'sumas de dos cifras', 'restas de dos cifras', 'el dinero', 'la hora', 'sumas llevando', 'restas llevando', 'tablas del 2, 5 y 10', 'tablas del 3 y 4', 'tablas del 6 al 9', 'la división', 'desafíos de genio'];
   const dias = [];
   for (let i = 0; i < 7; i++) dias.push(Utilities.formatDate(new Date(Date.now() - i * 864e5), 'Europe/Madrid', 'yyyy-MM-dd'));
   usuarios.forEach(u => {
