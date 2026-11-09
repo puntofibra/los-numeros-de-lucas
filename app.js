@@ -1523,7 +1523,9 @@ addEventListener('blur', () => { setTimeout(() => { if (document.hidden) silenci
 var ACT = (() => {
   /* Solo recarga si cambia el número de version.json (antes comparaba cabeceras
      de GitHub, que a veces cambian solas y provocaban recargas sin motivo). */
-  let ver = null, pendiente = false, mirando = false;
+  /* APP_V = versión de este código (igual que version.json al subirlo). Si el servidor tiene otra, se recarga. */
+  const APP_V = '11';
+  let ver = APP_V, pendiente = false, mirando = false;
   async function leeVersion() {
     try { const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return null; const j = await r.json(); return j && j.v ? String(j.v) : null; } catch (e) { return null; }
   }
@@ -1539,8 +1541,9 @@ var ACT = (() => {
     try {
       if (pendiente) { if (seguro()) recargar(); return; }
       const v = await leeVersion(); if (!v) return;
-      if (ver === null) { ver = v; return; }
       if (v !== ver) {
+        if (LS.get('recargaV') === v) { ver = v; return; }   // ya se recargó para esta versión: evita bucles
+        LS.set('recargaV', v);
         pendiente = true;
         try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) await reg.update(); } catch (e) {}
         if (seguro()) setTimeout(() => { if (seguro()) recargar(); }, 800);
