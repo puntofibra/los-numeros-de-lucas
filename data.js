@@ -56,8 +56,8 @@ const PLANETAS = [
     cfg: { lo: 0, hi: 100, op: 'x', tablas: [3, 4], t: { grupos: 2, op: 5, serie: 1, une: 1.5, verdad: 1, hueco: 1, problema: 1 } } },
   { id: 22, letra: '×6-9',   nombre: 'Planeta Tablazo',   color: '#ff8a3d', silabas: ['6 × 7', '8 × 4', '9 × 9'], tema: 'Tablas del 6 al 9',
     cfg: { lo: 0, hi: 100, op: 'x', tablas: [6, 7, 8, 9], t: { op: 5, une: 1.5, verdad: 1.5, hueco: 1.5, problema: 1 } } },
-  { id: 23, letra: '¿?',     nombre: 'Planeta Problemón', color: '#18e0ff', silabas: ['sumar', 'restar', 'multiplicar'], tema: 'Problemas',
-    cfg: { lo: 0, hi: 99, op: 'mix', t: { problema: 7, mixta: 1.5, verdad: 1 } } },
+  { id: 23, letra: '÷',      nombre: 'Planeta Repartón',  color: '#18e0ff', silabas: ['6 ÷ 2', '10 ÷ 5', '12 ÷ 3', '20 ÷ 4'], tema: 'La división: repartir en partes iguales',
+    cfg: { lo: 0, hi: 100, op: '/', tablas: [2, 3, 4, 5, 10], t: { reparto: 4, op: 4, problema: 2.5, hueco: 1.2, verdad: 1.2, une: 1 } } },
   { id: 24, letra: '🏆',     nombre: 'Galaxia Genio',     color: '#ff4d5e', silabas: [], tema: 'Desafíos de genio',
     cfg: { lo: 0, hi: 100, op: 'mix', genio: true, t: {} } }
 ];
@@ -139,7 +139,8 @@ const NARRADOR = {
     hora:     ['¿Qué hora es?', 'Mira el reloj. ¿Qué hora marca?', 'La aguja corta dice la hora. ¿Qué hora es?'],
     horaVF:   ['¿Es esa la hora del reloj?', 'Mira el reloj. ¿Verdad o mentira?'],
     grupos:   ['¿Cuántos hay en total? Cuenta los grupos.', 'Grupos iguales: ¿cuántos hay?'],
-    mixta:    ['¿Es una suma o una resta? ¡Calcula!', 'Atención: mira bien el signo.']
+    mixta:    ['¿Es una suma o una resta? ¡Calcula!', 'Atención: mira bien el signo.'],
+    reparto:  ['Reparte en partes iguales. ¿Cuántos le tocan a cada uno?', '¡A repartir! ¿Cuántos van en cada plato?', 'Divide en grupos iguales. ¿Cuántos hay en cada uno?']
   }
 };
 

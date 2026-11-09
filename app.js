@@ -435,7 +435,7 @@ function guardarNino(inmediato) {
   if (inmediato) return enviar();
   tGuardar = setTimeout(enviar, 1200);
 }
-function inicioEdad(e) { return e >= 8 ? 12 : e >= 7 ? 8 : e >= 6 ? 4 : e >= 5 ? 2 : 0; }
+function inicioEdad(e) { return e >= 8 ? 20 : e >= 7 ? 8 : e >= 6 ? 4 : e >= 5 ? 2 : 0; }
 function desbloqueado(i) {
   const d = datos();
   if (i === 0 || d.aj.todo || ADMIN.todo() || i <= inicioEdad(NINO.edad)) return true;
@@ -982,6 +982,7 @@ const opVoz = (a, o, b) => ENG.vozOp(a, o, b);
 function pistaOp(ej) {
   if (ej.o === '+') return `Empieza en el ${ej.a} y cuenta ${ej.b} más con los dedos.`;
   if (ej.o === '-') return `Empieza en el ${ej.a} y cuenta ${ej.b} hacia atrás.`;
+  if (ej.o === '/') return `¿Qué número por ${ej.b} da ${ej.a}? Piensa en la tabla del ${ej.b}.`;
   return `${ej.a} por ${ej.b} es sumar ${ej.b} veces el ${ej.a}.`;
 }
 
@@ -1163,7 +1164,7 @@ RENDER.hueco = (ej, E) => {
   const x = ej.cual ? ej.b : ej.a;
   E.appendChild(el('div', 'tarjeta', `<div class="leer xl op-grande">${ej.cual ? ej.a : '<span class="signo-hueco">?</span>'} ${ENG.simb(ej.o)} ${ej.cual ? '<span class="signo-hueco">?</span>' : ej.b} = ${ej.r}</div>`));
   E.appendChild(opciones(ej.opts, clsN(ej.opts), nOpt, o => o === x, b => { $('.signo-hueco').textContent = x; $('.signo-hueco').classList.add('ok'); acierto(b, `${opVoz(ej.a, ej.o, ej.b)}, ${ej.r}.`); }));
-  ej.ayuda = () => narra(pick(NARRADOR.pista) + (ej.o === '+' ? ` ¿cuánto le falta al ${ej.cual ? ej.a : ej.b} para llegar a ${ej.r}?` : ej.o === '-' ? (ej.cual ? ` del ${ej.a} al ${ej.r}, ¿cuántos quitamos?` : ` ${ej.r} más ${ej.b}.`) : ` ¿qué número por ${ej.cual ? ej.a : ej.b} da ${ej.r}?`));
+  ej.ayuda = () => narra(pick(NARRADOR.pista) + (ej.o === '+' ? ` ¿cuánto le falta al ${ej.cual ? ej.a : ej.b} para llegar a ${ej.r}?` : ej.o === '-' ? (ej.cual ? ` del ${ej.a} al ${ej.r}, ¿cuántos quitamos?` : ` ${ej.r} más ${ej.b}.`) : ej.o === '/' ? (ej.cual ? ` ¿entre qué número divides ${ej.a} para que dé ${ej.r}?` : ` ${ej.r} por ${ej.b}.`) : ` ¿qué número por ${ej.cual ? ej.a : ej.b} da ${ej.r}?`));
   narra(instr('hueco'));
 };
 function botonesVF(E, v, alAcertar, ayuda) {
@@ -1184,7 +1185,7 @@ RENDER.verdad = (ej, E) => {
 RENDER.problema = (ej, E) => {
   E.appendChild(el('div', 'tarjeta tarjeta-prob', `<div class="prob-emo">${ej.ob[0]}</div><div class="leer s">${esc(ej.texto)}</div>`));
   E.appendChild(opciones(ej.opts, clsN(ej.opts), nOpt, o => o === ej.r, b => acierto(b, `${opVoz(ej.a, ej.o, ej.b)}, ${ej.r}.`)));
-  ej.ayuda = () => narra(`${pick(NARRADOR.pista)} es una ${ej.o === '+' ? 'suma' : ej.o === '-' ? 'resta' : 'multiplicación'}: ${opVoz(ej.a, ej.o, ej.b)}.`);
+  ej.ayuda = () => narra(`${pick(NARRADOR.pista)} es una ${ej.o === '+' ? 'suma' : ej.o === '-' ? 'resta' : ej.o === '/' ? 'división' : 'multiplicación'}: ${opVoz(ej.a, ej.o, ej.b)}.`);
   ej.repetir = () => VOZ.decir(ej.texto, { rate: .92 });
   narra(instr('problema')).then(() => VOZ.decir(ej.texto, { rate: .92, cola: true }));
 };
@@ -1299,6 +1300,17 @@ RENDER.horaVF = (ej, E) => {
   E.appendChild(el('div', 'leer m', 'Son ' + ej.txt));
   botonesVF(E, ej.v, b => acierto(b, ej.v ? '¡Verdad!' : `¡Mentira! Son ${ENG.txtHora(ej.h, ej.m)}.`), () => narra('Fíjate en la aguja corta: marca la hora.'));
   narra(instr('horaVF'));
+};
+RENDER.reparto = (ej, E) => {
+  const T = el('div', 'tarjeta tarjeta-objs', objsHTML(ej.a, ej.ob[0], 0, 'mini'));
+  const P = el('div', 'platos'); for (let i = 0; i < ej.b; i++) P.appendChild(el('div', 'plato', '<b>?</b>'));
+  E.appendChild(T); E.appendChild(P);
+  E.appendChild(el('div', 'leer m op-media', `${ej.a} ÷ ${ej.b} = ?`));
+  const llena = () => [...P.children].forEach((p, i) => { p.innerHTML = `<span>${ej.ob[0].repeat(ej.r)}</span><small>${ej.r}</small>`; p.classList.add('lleno'); p.style.animationDelay = i * 120 + 'ms'; });
+  E.appendChild(opciones(ej.opts, clsN(ej.opts), nOpt, o => o === ej.r, b => { llena(); acierto(b, `${ej.a} entre ${ej.b} son ${ej.r}. A cada uno le tocan ${ej.r}.`); }));
+  ej.ayuda = () => narra(`${pick(NARRADOR.pista)} pon uno en cada plato, y vuelta a empezar, hasta que no quede ninguno. Es como buscar qué número por ${ej.b} da ${ej.a}.`);
+  ej.repetir = () => VOZ.decir(`Reparte ${ej.a} ${ej.ob[1]} entre ${ej.b} platos.`);
+  narra(instr('reparto')).then(() => VOZ.decir(`Tenemos ${ej.a} ${ej.ob[1]} y ${ej.b} platos.`, { cola: true }));
 };
 RENDER.grupos = (ej, E) => {
   const G = el('div', 'grupos-caja'); for (let i = 0; i < ej.g; i++) G.innerHTML += `<div class="grupo">${objsHTML(ej.n, ej.ob[0], 0, 'mini')}</div>`;
@@ -1607,7 +1619,7 @@ var ADMIN = (() => {
     if (!r.ok && /caducad|no válid/i.test(r.error || '')) { salir(); }
     return r;
   }
-  const TIPOS = { cuenta: 'Contar', escucha: 'Escucha el número', globos: 'Burbujas', traza: 'Traza el número', ordena: 'Ordenar', vecinos: 'Número que falta', compara: 'Comparar', formas: 'Formas', serie: 'Series', sumaVis: 'Suma con dibujos', restaVis: 'Resta con dibujos', op: 'Operación', mixta: 'Suma o resta', hueco: 'Hueco en la operación', verdad: 'Verdad o mentira', problema: 'Problema', une: 'Unir', dictado: 'Dictado de números', dictadoOp: 'Cálculo de oído', decenas: 'Decenas', pares: 'Par o impar', dinero: 'Dinero', compra: '¿Me llega?', hora: 'La hora', horaVF: 'Hora verdad/mentira', grupos: 'Grupos (×)' };
+  const TIPOS = { cuenta: 'Contar', escucha: 'Escucha el número', globos: 'Burbujas', traza: 'Traza el número', ordena: 'Ordenar', vecinos: 'Número que falta', compara: 'Comparar', formas: 'Formas', serie: 'Series', sumaVis: 'Suma con dibujos', restaVis: 'Resta con dibujos', op: 'Operación', mixta: 'Suma o resta', hueco: 'Hueco en la operación', verdad: 'Verdad o mentira', problema: 'Problema', une: 'Unir', dictado: 'Dictado de números', dictadoOp: 'Cálculo de oído', decenas: 'Decenas', pares: 'Par o impar', dinero: 'Dinero', compra: '¿Me llega?', hora: 'La hora', horaVF: 'Hora verdad/mentira', grupos: 'Grupos (×)', reparto: 'Repartir (÷)' };
   function probarTipo(tipo, lv) {
     if (!NINO) { toast('Elige antes un jugador'); return; }
     const lista = []; for (let k = 0; k < 30 && lista.length < 5; k++) { const ej = ENG.G[tipo](lv, 4, NINO.edad); if (ej) { ej.lv = lv; lista.push(ej); } }
@@ -1838,6 +1850,7 @@ var RETO = (() => {
     const T = {
       '+': [`Lucas tiene ${p.a} ${ob[1]} y ${amigo} le regala ${p.b} más. ¿${cuantos} ${ob[1]} tiene ahora?`, `En ${tm.lugar.split(',')[0]} hay ${p.a} ${ob[1]} y ${p.b === 1 ? 'llega 1' : 'llegan ' + p.b} más. ¿${cuantos} hay en total?`],
       '-': [`Había ${p.a} ${ob[1]} y ${amigo} se lleva ${p.b}. ¿${cuantos} quedan?`, `Lucas tenía ${p.a} ${ob[1]} y regala ${p.b} a sus amigos. ¿${cuantos} le quedan?`],
+      '/': [`Lucas reparte ${p.a} ${ob[1]} entre ${p.b} amigos a partes iguales. ¿${cuantos} le tocan a cada uno?`, `${amigo} guarda ${p.a} ${ob[1]} en ${p.b} cajas, el mismo número en cada una. ¿${cuantos} van en cada caja?`],
       'x': [`Hay ${p.a} cajas y en cada una hay ${p.b} ${ob[1]}. ¿${cuantos} hay en total?`, `${amigo} hace ${p.a} montones de ${p.b} ${ob[1]}. ¿${cuantos} son en total?`]
     };
     return Object.assign({ p: pick(T[p.o]) }, opc(p.r));

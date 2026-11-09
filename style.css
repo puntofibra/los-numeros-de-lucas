@@ -743,6 +743,12 @@ body, button, input, select, .btn, .titulo-pantalla, .cabecera h2, .btn-grande, 
 .grupo .objs { grid-template-columns: repeat(5, auto); }
 .pieza-num { min-width: 64px; font-size: 34px; }
 .reto-lucas { width: 120px; }
+.platos { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 560px; }
+.plato { min-width: 78px; min-height: 64px; padding: 6px 8px; border-radius: 50%/40%; background: radial-gradient(circle at 50% 40%, #f2fbff, #b9c7d8); border: 3px solid #18e0ff; display: grid; place-items: center; color: #0b1633; box-shadow: 0 6px 14px rgba(0,0,0,.35); }
+.plato b { font-size: 28px; color: #5a6b85; }
+.plato.lleno { animation: aparece .4s both; border-color: var(--verde); }
+.plato span { font-size: 20px; line-height: 1.1; max-width: 110px; word-break: break-all; text-align: center; }
+.plato small { font-family: var(--f-lectura); font-weight: 700; font-size: 18px; color: var(--verde-osc); }
 .mm-pt { letter-spacing: -2px; font-size: 20px !important; color: #ffb000; word-break: break-all; }
 .vis-suma .objs.mini { font-size: clamp(26px, 7.4vw, 42px); }
 

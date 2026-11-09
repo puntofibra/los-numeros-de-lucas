@@ -43,11 +43,11 @@ const ENG = (() => {
 
   /* ---- utilidades ---- */
   const cfgDe = lv => PLANETAS[Math.min(lv, PLANETAS.length - 1)].cfg;
-  const simb = o => o === '+' ? '+' : o === '-' ? '−' : '×';
-  const palOp = o => o === '+' ? 'más' : o === '-' ? 'menos' : 'por';
+  const simb = o => o === '+' ? '+' : o === '-' ? '−' : o === '/' ? '÷' : '×';
+  const palOp = o => o === '+' ? 'más' : o === '-' ? 'menos' : o === '/' ? 'entre' : 'por';
   const txtOp = (a, o, b) => `${a} ${simb(o)} ${b}`;
   const vozOp = (a, o, b) => `${a} ${palOp(o)} ${b}`;
-  const calc = (a, o, b) => o === '+' ? a + b : o === '-' ? a - b : a * b;
+  const calc = (a, o, b) => o === '+' ? a + b : o === '-' ? a - b : o === '/' ? a / b : a * b;
   /* opciones cercanas a la buena (sin repetir, dentro de [lo, hi]) */
   function cerca(r, n, lo = 0, hi = 999, salto) {
     const set = new Set([r]);
@@ -69,12 +69,17 @@ const ENG = (() => {
   /* ---- operaciones según el planeta ---- */
   function operacion(c, oForz) {
     let o = oForz || c.op;
-    if (o === 'mix') o = pick(['+', '+', '-', '-', 'x']);
+    if (o === 'mix') o = pick(['+', '+', '-', '-', 'x', '/']);
     let a, b;
     if (o === 'x') {
       const tablas = c.tablas || [2, 3, 4, 5, 6, 7, 8, 9, 10];
       const t = pick(tablas), k = RETO === 0 && Math.random() < .5 ? ent(1, 5) : ent(1, 10);
       if (RETO >= 2 && Math.random() < .35) { a = k; b = t; } else { a = t; b = k; }
+    } else if (o === '/') {
+      /* división exacta sacada de las tablas: (t × k) ÷ t = k */
+      const tablas = c.tablas || [2, 3, 4, 5, 10];
+      const t = pick(tablas), k = RETO === 0 && Math.random() < .55 ? ent(1, 5) : ent(1, 10);
+      a = t * k; b = t;
     } else if (c.dos || (c.op === 'mix' && Math.random() < .6)) {
       const llevar = c.op === 'mix' ? Math.random() < .5 : !!c.llevar;
       for (let k = 0; k < 60; k++) {
@@ -181,6 +186,11 @@ const ENG = (() => {
     let mostrado = p.r; if (!v) { mostrado = pick(cerca(p.r, 4, 0, 200).filter(x => x !== p.r)); }
     return { tipo: 'verdad', o: p.o, a: p.a, b: p.b, r: p.r, m: mostrado, v: mostrado === p.r, id: 'vf:' + txtOp(p.a, p.o, p.b) };
   };
+  /* reparto con dibujos: a objetos en b platos */
+  G.reparto = lv => mejor(() => {
+    const t = pick(EDAD <= 7 ? [2, 3, 4, 5] : [2, 3, 4, 5, 6]), k = ent(2, EDAD <= 7 ? 5 : 6), ob = obj();
+    return { tipo: 'reparto', a: t * k, b: t, r: k, o: '/', ob, opts: cerca(k, nOpc(), 1, 12), id: 'o:' + txtOp(t * k, '/', t) };
+  });
   G.dictadoOp = lv => { const e = G.op(lv); if (e) e.tipo = 'dictadoOp'; return e; };
   /* problemas con historia */
   const PROB = {
@@ -195,6 +205,11 @@ const ENG = (() => {
       (n, a, b, o) => `En la nave había ${a} ${o[1]}. Se escapan ${b}. ¿Cuántos quedan?`,
       (n, a, b, o) => `Hay ${a} ${o[1]} en el planeta. Un marciano se lleva ${b}. ¿Cuántos quedan?`,
       (n, a, b, o) => `${n} tiene ${a} ${o[1]} y pierde ${b}. ¿Cuántos tiene ahora?`
+    ],
+    '/': [
+      (n, a, b, o) => `${n} reparte ${a} ${o[1]} entre ${b} amigos a partes iguales. ¿Cuántos le tocan a cada uno?`,
+      (n, a, b, o) => `Hay ${a} ${o[1]} para guardar en ${b} cajas, el mismo número en cada una. ¿Cuántos van en cada caja?`,
+      (n, a, b, o) => `${n} tiene ${a} ${o[1]} y hace grupos de ${b}. ¿Y cuántos grupos le salen?`
     ],
     'x': [
       (n, a, b, o) => `Hay ${a} cajas con ${b} ${o[1]} en cada una. ¿Cuántos hay en total?`,
@@ -260,7 +275,7 @@ const ENG = (() => {
   /* ---- qué ejercicios salen en cada planeta ---- */
   function tipos(lv, edad) {
     const c = cfgDe(lv);
-    if (c.genio) return { op: 4, problema: 4, hueco: 2, verdad: 2, une: 1.5, hora: 1, dinero: 1, decenas: 1, serie: 1.5, mixta: 2, compra: 1 };
+    if (c.genio) return { op: 4, problema: 4, hueco: 2, verdad: 2, une: 1.5, hora: 1, dinero: 1, decenas: 1, serie: 1.5, mixta: 2, compra: 1, reparto: 1 };
     const t = Object.assign({}, c.t);
     if (edad >= 7) { if (t.cuenta) t.cuenta *= .6; if (t.globos) t.globos *= .6; if (t.problema) t.problema += .8; }
     if (edad <= 5) { if (t.problema) t.problema *= .5; if (t.verdad) t.verdad *= .7; }
@@ -268,7 +283,7 @@ const ENG = (() => {
     return t;
   }
   /* la Galaxia Genio usa operaciones de todos los planetas */
-  const GENIO = { op: 23, problema: 23, hueco: 18, verdad: 14, une: 14, hora: 17, dinero: 16, decenas: 12, serie: 20, mixta: 19, compra: 16 };
+  const GENIO = { op: 24, problema: 24, hueco: 24, verdad: 24, une: 24, hora: 17, dinero: 16, decenas: 12, serie: 20, mixta: 19, compra: 16, reparto: 23 };
   function eligeTipo(t, evitar) {
     const ks = Object.keys(t).filter(k => t[k] > 0 && k !== evitar && G[k]);
     const tot = ks.reduce((a, k) => a + t[k], 0); let r = Math.random() * tot;
@@ -283,7 +298,7 @@ const ENG = (() => {
     while (out.length < n && tries++ < 200) {
       let L = repaso ? Math.max(0, (maxLv || lv) - rnd(4)) : lv;
       const tp = eligeTipo(tipos(L, edad), prev);
-      if (cfgDe(L).genio) L = GENIO[tp] != null ? GENIO[tp] : 23;
+      if (cfgDe(L).genio) L = GENIO[tp] != null ? GENIO[tp] : 24;
       const ej = G[tp](L, null, edad);
       if (!ej) continue;
       if (tries < 150 && out.some(o => o.id === ej.id)) continue;
