@@ -1377,7 +1377,7 @@ async function finMision() {
         SFX.fanfarria(); FX.chispas(b, 60, '#ffd23f'); FX.confeti(80);
         const pg = el('span', 'pega-sale', PEGATINAS[peg].e); b.appendChild(pg);
         P.querySelector('.cofre-txt').innerHTML = `¡Pegatina nueva!<br><small>${PEGATINAS[peg].n}</small>`;
-        VOZ.decir('¡Una pegatina de ' + PEGATINAS[peg].n + '! Ya está en tu álbum.');
+        VOZ.decir('¡Una pegatina de ' + PEGATINAS[peg].n + '! ¡Ve al álbum a pegarla en su sitio!');
       }, 900);
     };
     $('#cofreBtn').onclick = abrir;
