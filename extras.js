@@ -128,7 +128,7 @@ function pintaRecreo() {
   $('#recZona').innerHTML = `<p class="rec-ayuda">${gratisAdmin() ? 'Modo admin: juegos gratis' : 'Cada juego gasta 1 ficha. Ganas 1 ficha por cada misión completada.'}</p>` +
     JUEGOS.map(j => `<button class="rec-juego" data-j="${j.id}"><span class="rj-e">${j.e}</span><span class="rj-t"><b>${j.n}</b><small>${j.d}</small>${d.rec[j.id] ? `<em>Récord: ${d.rec[j.id]}</em>` : ''}</span><span class="rj-go">▶</span></button>`).join('');
   $$('#recZona .rec-juego').forEach(b => b.onclick = () => jugar(b.dataset.j));
-  $('#recVolver').onclick = () => { SFX.clic(); if (REC.fin) REC.fin(true); ir('mapa'); };
+  $('#recVolver').onclick = () => { SFX.clic(); if ($('#recZona .rec-juego')) { ir('mapa'); return; } if (REC.fin) REC.fin(true); REC.fin = null; pintaRecreo(); };
 }
 const REC = { fin: null };
 function jugar(id) {
