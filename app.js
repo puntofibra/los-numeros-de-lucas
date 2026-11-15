@@ -901,6 +901,7 @@ const silabeo = p => p.s.map(sv).join('... ') + '... ' + p.w;
 function pic(p) {
   const slug = ENG.quitaTildes(p.w.toLowerCase()).replace('ñ', 'n');
   if (IMAGENES.includes(slug)) return `<img src="img/palabras/${slug}.png" alt="">`;
+  const d = window.DIB && DIB.palabra(p.w, p.e); if (d) return d;   // dibujos de COSMOLUCAS al estilo de Lucas
   return p.e;
 }
 
@@ -968,7 +969,7 @@ function relojSVG(h, m) {
 }
 /* monedas y billetes */
 function dineroHTML(piezas) {
-  return `<div class="cartera">${piezas.map((v, i) => v <= 2 ? `<span class="moneda m${v}" style="animation-delay:${i * 80}ms"><b>${v}</b><small>€</small></span>` : `<span class="billete b${v}" style="animation-delay:${i * 80}ms"><b>${v}</b><small>EURO</small></span>`).join('')}</div>`;
+  return `<div class="cartera">${piezas.map((v, i) => window.DIB ? `<img class="euro-dib ${v <= 2 ? 'em' : 'eb'}" src="${DIB.url('euro-' + v)}" alt="${v} euros" style="animation-delay:${i * 80}ms">` : v <= 2 ? `<span class="moneda m${v}" style="animation-delay:${i * 80}ms"><b>${v}</b><small>€</small></span>` : `<span class="billete b${v}" style="animation-delay:${i * 80}ms"><b>${v}</b><small>EURO</small></span>`).join('')}</div>`;
 }
 /* bloques de decenas (barras de 10) y unidades */
 function bloquesHTML(d, u) {

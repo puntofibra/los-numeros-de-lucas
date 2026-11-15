@@ -766,3 +766,7 @@ body, button, input, select, .btn, .titulo-pantalla, .cabecera h2, .btn-grande, 
 
 /* el dibujo del planeta ya lleva sus números y signos: sin texto encima (solo el candado si está bloqueado) */
 .planeta .letra:empty { display: none; }
+
+/* monedas y billetes dibujados (COSMOLUCAS) */
+.euro-dib{display:inline-block;animation:aparece .5s cubic-bezier(.3,1.6,.5,1) backwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+.euro-dib.em{height:64px}.euro-dib.eb{height:62px}
