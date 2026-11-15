@@ -1171,7 +1171,7 @@ RENDER.hueco = (ej, E) => {
 function botonesVF(E, v, alAcertar, ayuda) {
   const O = el('div', 'opciones');
   [[true, '✅', 'Verdad'], [false, '❌', 'Mentira']].forEach(([val, e, t]) => {
-    const b = el('button', 'opt opt-verdad', `<b>${e}</b>${t}`);
+    const b = el('button', 'opt opt-verdad', `<b>${window.DIB ? DIB.img(val ? 'pal-verdad' : 'pal-mentira') : e}</b>${t}`);
     b.onclick = () => { if (EJ.resuelto) return; if (val === v) { b.classList.add('ok'); alAcertar(b); } else { fallo(b); if (ayuda) ayuda(); } };
     O.appendChild(b);
   });
@@ -1364,14 +1364,16 @@ async function finMision() {
   let frase = pick(NARRADOR['fin' + est]);
   if (peg != null) {
     frase += ' ' + pick(NARRADOR.pegatina);
-    P.innerHTML = `<button class="cofre" id="cofreBtn" title="Abrir"><img src="img/cofre.png" alt="Cofre"></button><div class="cofre-txt">¡Has ganado un cofre!<br><small>Tócalo para abrirlo</small></div>`;
+    P.innerHTML = `<button class="cofre" id="cofreBtn" title="Abrir"><span class="cofre-sp"></span></button><div class="cofre-txt">¡Has ganado un cofre!<br><small>Tócalo para abrirlo</small></div>`;
     P.classList.remove('oculto');
     let abierto = false;
     const abrir = () => {
       if (abierto) return; abierto = true;
-      const b = $('#cofreBtn'); b.classList.add('abriendo'); SFX.woosh();
+      const b = $('#cofreBtn'), sp = b.querySelector('.cofre-sp'), fr = n => { sp.style.backgroundPosition = (n * 20) + '% 0'; };
+      b.classList.add('abriendo'); fr(1); SFX.woosh();
+      setTimeout(() => { b.classList.remove('abriendo'); fr(2); }, 520); setTimeout(() => fr(3), 720);
       setTimeout(() => {
-        b.querySelector('img').src = 'img/cofre-abierto.png'; b.classList.remove('abriendo'); b.classList.add('abierto');
+        fr(4); setTimeout(() => fr(5), 1100); b.classList.remove('abriendo'); b.classList.add('abierto');
         SFX.fanfarria(); FX.chispas(b, 60, '#ffd23f'); FX.confeti(80);
         const pg = el('span', 'pega-sale', PEGATINAS[peg].e); b.appendChild(pg);
         P.querySelector('.cofre-txt').innerHTML = `¡Pegatina nueva!<br><small>${PEGATINAS[peg].n}</small>`;
