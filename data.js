@@ -154,7 +154,7 @@ const PEGATINAS = [
   { e: '🦊', n: 'Zorro' }, { e: '🐼', n: 'Panda' }, { e: '🦁', n: 'León' }, { e: '🐬', n: 'Delfín' },
   { e: '🏆', n: 'Copa' }, { e: '🎖️', n: 'Medalla' }, { e: '👑', n: 'Corona' }, { e: '💎', n: 'Diamante' },
   { e: '🎸', n: 'Guitarra' }, { e: '🎮', n: 'Mando' }, { e: '⚽', n: 'Balón' }, { e: '🎨', n: 'Pinturas' },
-  { e: '🧮', n: 'Ábaco' }, { e: '🧸', n: 'Osito' }, { e: '🍦', n: 'Helado' }, { e: '🍩', n: 'Dónut' },
+  { e: '📚', n: 'Libros' }, { e: '🧸', n: 'Osito' }, { e: '🍦', n: 'Helado' }, { e: '🍩', n: 'Dónut' },
   { e: '🌋', n: 'Volcán' }, { e: '🏰', n: 'Castillo' }, { e: '🎡', n: 'Noria' }, { e: '🤖', n: 'Lucas' }
 ];
 const IMAGENES = [];
