@@ -174,7 +174,7 @@ const RC_IMG = {};
 function rcImg(s) { if (!RC_IMG[s]) { const i = new Image(); i.src = '/turbolucas/img/hd/' + s + '.webp'; RC_IMG[s] = i; } return RC_IMG[s]; }
 const rcOk = i => !!(i && i.complete && i.naturalWidth);
 function rcPon(x, s, cx, cy, w, ax = .5, ay = .5) { const i = rcImg(s); if (!rcOk(i)) return 0; const h = w * i.naturalHeight / i.naturalWidth; x.drawImage(i, cx - w * ax, cy - h * ay, w, h); return h; }
-['cu-fondo-garra', 'cu-fondo-crater', 'cu-garra-abierta', 'cu-garra-cerrada', 'cu-garra-motor', 'cu-garra-cable', 'cu-met-morado', 'cu-met-gris', 'cu-met-rojo', 'cu-met-oro', 'cu-crater', 'cu-martillo', 'cu-rey', 'cu-rey-risa', 'cu-rey-golpe', 'cu-pam', 'cu-burbuja-energia', 'cu-rayo',
+['cu-fondo-garra', 'cu-fondo-crater2', 'cu-garra-abierta', 'cu-garra-cerrada', 'cu-garra-motor', 'cu-garra-cable', 'cu-met-morado', 'cu-met-gris', 'cu-met-rojo', 'cu-met-oro', 'cu-crater', 'cu-martillo', 'cu-rey', 'cu-rey-risa', 'cu-rey-golpe', 'cu-pam', 'cu-burbuja-energia', 'cu-rayo',
  'cu-mar-oro'].concat(...['morado', 'verde', 'azul'].map(c => ['', '-golpe', '-risa'].map(s => 'cu-mar-' + c + s))).forEach(s => setTimeout(() => rcImg(s), 1500));
 
 /* =====================================================================
@@ -318,7 +318,7 @@ function juegoMarcianos() {
   const RONDAS = peque ? [{ tipo: 'num', d: 20 }, { tipo: 'oido', d: 20 }, { tipo: 'num', d: 20 }, { tipo: 'jefe', d: 35 }]
     : [{ tipo: 'op', d: 20 }, { tipo: lv >= 8 ? 'pares' : 'mayor', d: 20 }, { tipo: 'op', d: 20 }, { tipo: 'jefe', d: 35 }];
   const E = rcEscena(`<span>⏱️ <b id="maT">20</b></span><span class="rc-obj" id="maObj"></span><span>⭐ <b id="maP">0</b></span>`);
-  const { x } = E, est = rcEstrellas(40), L = [], anillos = []; E.bg = 'cu-fondo-crater'; E.bgY = .35;
+  const { x } = E, est = rcEstrellas(40), L = [], anillos = []; E.bg = 'cu-fondo-crater2'; E.bgY = 0;
   let ronda = -1, tR = 0, pts = 0, combo = 0, vivo = true, banner = null, spawnT = 0, objetivo = null, ultObj = null, buenosObj = 0, desdeBueno = 0;
   const huecos = Array(9).fill(null);
   const COLS = [['#7dff6b', '#1f8a2a'], ['#c08bff', '#5a2a9a'], ['#5ff0ff', '#126b8a'], ['#ff8fd0', '#9a2a6b'], ['#ffd25f', '#9a6b12']];
