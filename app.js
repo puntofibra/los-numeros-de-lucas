@@ -1721,55 +1721,133 @@ var ADMIN = (() => {
 /* =====================================================================
    LICENCIA · prueba gratis sin avisos durante 15 días de uso distintos.
    El día 15 aparece el cartel de pago único (2,99 € con myPOS).
-   El admin confirma el pago desde el modo admin.
+   La compra es una licencia vitalicia del programa de Licencias de FuturMovil:
+   el cliente paga con su código en el motivo y se activa sola en unos minutos.
+   15 minutos de cortesía mientras llega el pago; si se confirma sin pagar
+   varias veces, esperas cada vez más largas (lo decide el servidor).
    ===================================================================== */
 var LICENCIA = (() => {
   const PAGO = 'https://mypos.com/@futurmovil/2.99';   // myPOS necesita punto decimal (con coma sale 0,00)
   const WA = '34633200100';
+  let tGracia = null, tSondeo = null, codigo = '', pagoUrl = PAGO;
+  const L = () => (SES && SES.lic) || { dias: 15, prueba: 15, precio: '2,99' };
+  const fechaHora = ms => { const h = new Date(ms); return h.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) + ' a las ' + h.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); };
+  const waUrl = () => `https://wa.me/${WA}?text=` + encodeURIComponent(`Hola, he pagado la licencia de Los números de Lucas (${L().precio} €). Mi cuenta es ${SES ? SES.email : ''}` + (codigo || L().codigo ? ` · código ${codigo || L().codigo}` : ''));
+  const robot = `<span class="robot pay-robot" data-pose="lucas-vuela" data-fuerza="2"><canvas class="fuego"></canvas><img src="img/lucas/vuela.png" alt=""></span>`;
+  function guarda(l) {
+    if (!SES || !l) return; const antes = SES.lic; SES.lic = l; LS.set('ses', SES); programa();
+    if (l.ok && antes && !antes.ok && (antes.espera || antes.estado === 'pendiente')) cartel('activada');
+  }
+  /* mientras se comprueba el pago: mira cada 90 s si ya llegó y, al acabar los 15 minutos, vuelve a mirar */
+  function programa() {
+    clearTimeout(tGracia); clearInterval(tSondeo); const l = SES && SES.lic;
+    if (!l || l.ok || !l.espera) return;
+    tSondeo = setInterval(refrescar, 90000);
+    tGracia = setTimeout(refrescar, (l.quedaMs || 0) + 5000);
+  }
+  async function refrescar() {
+    if (!SES || document.hidden) return;
+    const r = await api('estado', { token: SES.token });
+    if (r.ok && r.lic) { guarda(r.lic); comprobar(); }
+  }
   function cartel(vista) {
-    const l = (SES && SES.lic) || { dias: 15, prueba: 15, precio: '2,99' };
-    const waTxt = encodeURIComponent(`Hola, he pagado la licencia de Los números de Lucas (${l.precio} €). Mi cuenta es ${SES ? SES.email : ''}`);
-    modal(`<div class="pay">
-      <span class="robot pay-robot" data-pose="lucas-vuela" data-fuerza="2"><canvas class="fuego"></canvas><img src="img/lucas/vuela.png" alt=""></span>
-      <h2>¡Misión de prueba completada!</h2>
-      <p class="dlg-txt">Habéis disfrutado de <b>${l.prueba} días</b> jugando con Lucas. 🚀<br>Para seguir explorando los planetas, desbloquea la app <b>para siempre</b>.</p>
-      <div class="pay-precio"><b>${l.precio} €</b><span>pago único</span></div>
-      <ul class="pay-lista">
-        <li>✅ Licencia <b>vitalicia</b>: pagas una vez y es tuya para siempre</li>
-        <li>✅ Sin suscripciones ni pagos mensuales</li>
-        <li>✅ Todos los planetas, retos y jugadores de la familia</li>
-        <li>✅ Las actualizaciones y novedades, incluidas</li>
-      </ul>
-      ${vista === 'gracias' || vista === 'gracias-demo' ? `<div class="pay-ok">💚 <b>¡Gracias!</b> Activaremos tu licencia en cuanto confirmemos el pago, normalmente en pocas horas. Mientras tanto puedes seguir usando la app.</div>
-        <a class="btn btn-azul" target="_blank" href="https://wa.me/${WA}?text=${waTxt}">💬 Avisar por WhatsApp</a>
-        <button class="btn btn-verde btn-grande" id="paySeguir">🚀 SEGUIR JUGANDO</button>`
-      : `<a class="btn btn-verde btn-grande" id="payIr" target="_blank" href="${PAGO}">💳 DESBLOQUEAR POR ${l.precio} €</a>
-        <button class="btn" id="payHecho">✅ Ya he pagado</button>
-        ${l.avisado ? `<p class="dlg-txt" style="font-size:13px">Tu pago está pendiente de confirmar. Si ya pagaste, <a style="color:var(--verde)" target="_blank" href="https://wa.me/${WA}?text=${waTxt}">avísanos por WhatsApp</a>.</p>` : ''}
-        <p class="pay-seg">🔒 Pago seguro con myPOS</p>`}
-      ${vista === 'demo' ? '<button class="btn btn-mini" id="payCerrar">Cerrar vista previa</button>' : ''}
-    </div>`, vista !== 'demo');
-    VOZ.callar();
-    /* Lucas lo explica hablado */
+    const l = L(), demo = vista === 'demo' || /-demo$/.test(vista || '');
+    const v = String(vista || 'pagar').replace(/-demo$/, '').replace(/^demo$/, 'pagar');
+    const fijo = !demo && v !== 'gracias' && v !== 'activada';
+    let html = '', habla = '';
     const nom = NINO ? NINO.nombre : '';
-    const habla = vista === 'gracias' || vista === 'gracias-demo'
-      ? `¡Muchísimas gracias! En cuanto confirmemos el pago, tu licencia quedará activada para siempre. Mientras tanto, puedes seguir jugando conmigo.`
-      : `¡Misión de prueba completada! ${nom ? nom + ' y tu familia habéis' : 'Habéis'} disfrutado de ${l.prueba} días jugando conmigo. Para seguir explorando todos los planetas, podéis desbloquear la aplicación para siempre. Es un pago único de ${l.precio.replace(',', ' con ')} euros. Pagas una sola vez y la aplicación es tuya para siempre, con licencia vitalicia: sin suscripciones y sin pagos mensuales. Incluye todos los planetas, los cuentos de cada noche, todos los lectores de la familia y todas las novedades que vayan llegando. Pulsa el botón verde para desbloquearla. ¡Te espero para seguir leyendo juntos!`;
-    setTimeout(() => VOZ.decir(habla, { rate: .95 }), 600);
-    const ir_ = $('#payIr'); if (ir_) ir_.onclick = () => { SFX.clic(); setTimeout(() => { const h = $('#payHecho'); if (h) h.classList.add('btn-azul'); }, 1500); };
-    const h = $('#payHecho');
-    if (h) h.onclick = async () => {
-      if (vista === 'demo') { cartel('gracias-demo'); return; }
-      h.disabled = true; h.textContent = 'Un momento…';
-      const r = await api('pagoAviso', { token: SES.token });
-      if (r.ok) { SES.lic = Object.assign({}, SES.lic, { avisado: true, espera: true }); LS.set('ses', SES); cartel('gracias'); SFX.ok(); FX.confeti(80); }
-      else { h.disabled = false; h.textContent = '✅ Ya he pagado'; toast(r.error || 'Sin conexión, inténtalo otra vez'); }
+    if (v === 'codigo') {
+      html = `<h2>Tu código de compra</h2>
+        <p class="dlg-txt">Escríbelo en el <b>motivo del pago</b> de myPOS para que tu licencia se active <b>sola</b>.</p>
+        <div class="pay-cod" style="margin:12px auto 10px;font:900 26px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;color:#17ff5f;background:rgba(23,255,95,.07);border:2px dashed rgba(23,255,95,.55);border-radius:14px;padding:14px 10px;user-select:all;-webkit-user-select:all">${esc(codigo)}</div>
+        <ol class="pay-lista" style="text-align:left;list-style:none;padding:0">
+          <li>1️⃣ Pulsa <b>COPIAR Y PAGAR</b>: el código se copia solo.</li>
+          <li>2️⃣ En myPOS, pega el código en <b>Motivo del pago</b> y paga <b>${l.precio} €</b>.</li>
+          <li>3️⃣ Vuelve aquí y pulsa <b>Ya he pagado</b>.</li>
+        </ol>
+        <button class="btn btn-verde btn-grande" id="payIr">💳 COPIAR Y PAGAR</button>
+        <button class="btn" id="payCopia">📋 Copiar código</button>
+        <button class="btn" id="payHecho">✅ Ya he pagado</button>
+        <p class="pay-seg">🔒 Pago seguro con myPOS · ${esc(SES ? SES.email : '')}</p>`;
+      habla = 'Este es tu código de compra. Pulsa el botón verde: el código se copia solo. En la página de pago, pégalo en el motivo del pago y paga. Después vuelve aquí y pulsa: ya he pagado.';
+    } else if (v === 'gracias') {
+      html = `<h2>¡Gracias!</h2>
+        <div class="pay-ok">⏳ Estamos <b>comprobando tu pago</b>: suele tardar unos <b>15 minutos</b>. En cuanto llegue, tu licencia se activará <b>sola y para siempre</b>.<br>Mientras tanto podéis seguir jugando.</div>
+        <button class="btn btn-verde btn-grande" id="paySeguir">🚀 SEGUIR JUGANDO</button>
+        <a class="btn btn-azul" target="_blank" href="${waUrl()}">💬 ¿Dudas? Escríbenos</a>`;
+      habla = '¡Muchísimas gracias! Estamos comprobando tu pago. Suele tardar unos quince minutos y, en cuanto llegue, tu licencia se activará sola y para siempre. Mientras tanto, puedes seguir jugando conmigo.';
+    } else if (v === 'activada') {
+      html = `<h2>¡Los números de Lucas es vuestro!</h2>
+        <div class="pay-ok">💚 Tu pago ha llegado y tu licencia <b>vitalicia</b> ya está activada. ¡Para siempre!</div>
+        <button class="btn btn-verde btn-grande" id="paySeguir">🚀 A JUGAR</button>`;
+      habla = '¡Tu pago ha llegado! La aplicación ya es vuestra para siempre. ¡Vamos a seguir jugando juntos!';
+      setTimeout(() => { try { SFX.ok(); FX.confeti(120); } catch (e) {} }, 300);
+    } else if (v === 'espera') {
+      html = `<h2>Un momento…</h2>
+        <p class="dlg-txt">Se han confirmado <b>${l.fallos || 3} pagos</b> que no han llegado, así que hasta el <b>${fechaHora(l.esperaHasta)}</b> no se puede volver a confirmar otro.</p>
+        <div class="pay-ok">Si ya habéis pagado de verdad con vuestro código en el motivo, <b>no tenéis que hacer nada</b>: se desbloqueará sola en cuanto llegue el pago.</div>
+        <button class="btn" id="payComprobar">🔄 Comprobar ahora</button>
+        <a class="btn btn-azul" target="_blank" href="${waUrl()}">💬 Escríbenos por WhatsApp</a>`;
+      habla = 'Un momento. Se han confirmado varios pagos que no han llegado, así que hay que esperar un poco antes de volver a confirmar. Si ya habéis pagado con vuestro código, no tenéis que hacer nada: se desbloqueará sola en cuanto llegue el pago.';
+    } else {
+      const rech = l.estado === 'rechazada';
+      html = `<h2>${rech ? (l.fallos >= 2 ? 'Tu pago sigue sin llegar' : 'Tu pago no ha llegado') : '¡Misión de prueba completada!'}</h2>
+        ${rech ? `<p class="dlg-txt">${l.fallos >= 2 ? 'Ya van varias confirmaciones de pago que no han llegado. Si vuelves a confirmar sin pagar, tendrás que <b>esperar un tiempo</b> (cada vez más) antes de poder intentarlo otra vez.' : 'Han pasado 15 minutos y el pago no ha llegado.'}<br>Si ya pagaste, revisa que escribiste tu <b>código</b> en el motivo del pago: en cuanto llegue se activará sola.</p>`
+          : `<p class="dlg-txt">Habéis disfrutado de <b>${l.prueba} días</b> jugando con Lucas. 🚀<br>Para seguir explorando los planetas, desbloquea la app <b>para siempre</b>.</p>`}
+        <div class="pay-precio"><b>${l.precio} €</b><span>pago único</span></div>
+        <ul class="pay-lista">
+          <li>✅ Licencia <b>vitalicia</b>: pagas una vez y es tuya para siempre</li>
+          <li>✅ Sin suscripciones ni pagos mensuales</li>
+          <li>✅ Todos los planetas, retos y jugadores de la familia</li>
+          <li>✅ Las actualizaciones y novedades, incluidas</li>
+        </ul>
+        <button class="btn btn-verde btn-grande" id="payComprar">💳 DESBLOQUEAR POR ${l.precio} €</button>
+        ${rech ? `<button class="btn" id="payComprobar">🔄 Ya pagué · comprobar</button>` : ''}
+        <p class="pay-seg">🔒 Pago seguro con myPOS</p>`;
+      habla = rech ? (l.fallos >= 2 ? 'Tu pago sigue sin llegar. Si ya pagaste, revisa que escribiste tu código en el motivo del pago: en cuanto llegue se activará sola.' : 'Han pasado quince minutos y el pago no ha llegado. Si ya pagaste, revisa que escribiste tu código en el motivo del pago: en cuanto llegue, se activará sola.')
+        : `¡Misión de prueba completada! ${nom ? nom + ' y tu familia habéis' : 'Habéis'} disfrutado de ${l.prueba} días jugando conmigo. Para seguir explorando todos los planetas, podéis desbloquear la aplicación para siempre. Es un pago único de ${String(l.precio).replace(',', ' con ')} euros. Pagas una sola vez y la aplicación es tuya para siempre, con licencia vitalicia: sin suscripciones y sin pagos mensuales. Incluye todos los planetas, todos los retos, todos los jugadores de la familia y todas las novedades que vayan llegando. Pulsa el botón verde para desbloquearla. ¡Te espero para seguir jugando juntos!`;
+    }
+    modal(`<div class="pay">${robot}${html}${demo ? '<button class="btn btn-mini" id="payCerrar">Cerrar vista previa</button>' : ''}</div>`, fijo);
+    VOZ.callar(); setTimeout(() => VOZ.decir(habla, { rate: .95 }), 600);
+    const $b = id => $('#' + id);
+    const copia = () => { try { navigator.clipboard.writeText(codigo); } catch (e) {} };
+    if ($b('payComprar')) $b('payComprar').onclick = async () => {
+      SFX.clic(); const b = $b('payComprar');
+      if (demo) { codigo = 'DEMO-1234-ABCD'; cartel('codigo-demo'); return; }
+      b.disabled = true; b.textContent = 'Un momento…';
+      const r = await api('licCodigo', { token: SES.token });
+      if (!r.ok) { b.disabled = false; b.textContent = `💳 DESBLOQUEAR POR ${l.precio} €`; toast(r.error || 'Sin conexión, inténtalo otra vez'); return; }
+      if (r.pagada) { guarda(r.lic); MODAL_FIJO = false; cartel('activada'); return; }
+      codigo = r.codigo; pagoUrl = r.pago || PAGO; if (r.lic) guarda(r.lic); cartel('codigo');
     };
-    const sg = $('#paySeguir'); if (sg) sg.onclick = () => { MODAL_FIJO = false; cerrarModal(); };
-    const cc = $('#payCerrar'); if (cc) cc.onclick = () => { MODAL_FIJO = false; cerrarModal(); };
-    if (vista === 'gracias-demo') { MODAL_FIJO = false; }
+    if ($b('payCopia')) $b('payCopia').onclick = () => { copia(); SFX.clic(); toast('Código copiado'); };
+    if ($b('payIr')) $b('payIr').onclick = () => {
+      copia(); SFX.clic();
+      try { const a = document.createElement('a'); a.href = pagoUrl; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); } catch (e) { location.href = pagoUrl; }
+      setTimeout(() => { const h = $b('payHecho'); if (h) h.classList.add('btn-azul'); }, 1500);
+    };
+    if ($b('payHecho')) $b('payHecho').onclick = async () => {
+      const h = $b('payHecho');
+      if (demo) { cartel('gracias-demo'); return; }
+      h.disabled = true; h.textContent = 'Un momento…';
+      const r = await api('licPagar', { token: SES.token });
+      if (!r.ok) { h.disabled = false; h.textContent = '✅ Ya he pagado'; toast(r.error || 'Sin conexión, inténtalo otra vez'); return; }
+      if (r.lic) guarda(r.lic);
+      if (r.lic && r.lic.ok) { MODAL_FIJO = false; cartel('activada'); return; }
+      if (r.bloqueo) { cartel('espera'); return; }
+      MODAL_FIJO = false; cartel('gracias'); SFX.ok(); FX.confeti(80);
+    };
+    if ($b('payComprobar')) $b('payComprobar').onclick = async () => {
+      const b = $b('payComprobar'); if (demo) return; b.disabled = true; b.textContent = 'Comprobando…';
+      const r = await api('estado', { token: SES.token });
+      if (r.ok && r.lic) { SES.lic = r.lic; LS.set('ses', SES); programa(); if (r.lic.ok) { MODAL_FIJO = false; cartel('activada'); return; } }
+      b.disabled = false; b.textContent = '🔄 Todavía no ha llegado · reintentar';
+    };
+    const sg = $b('paySeguir'); if (sg) sg.onclick = () => { MODAL_FIJO = false; cerrarModal(); };
+    const cc = $b('payCerrar'); if (cc) cc.onclick = () => { MODAL_FIJO = false; cerrarModal(); };
   }
   function comprobar() {
+    programa();
     const l = SES && SES.lic; if (!l || l.ok || !l.bloqueo || l.espera) return false;
     cartel('pagar'); return true;
   }
