@@ -1848,9 +1848,33 @@ var LICENCIA = (() => {
   }
   function comprobar() {
     programa();
-    const l = SES && SES.lic; if (!l || l.ok || !l.bloqueo || l.espera) return false;
+    const l = SES && SES.lic; if (!l) return false;
+    if (l.corte) { corte(l.corte); return true; }   // juego apagado o licencia bloqueada desde el programa de Licencias
+    if (l.ok || !l.bloqueo || l.espera) return false;
     cartel('pagar'); return true;
   }
+  /* apagado del juego o bloqueo de la licencia desde el programa de Licencias: no deja entrar a nadie */
+  function corte(c) {
+    const ap = c === 'apagada';
+    const wa = `https://wa.me/${WA}?text=` + encodeURIComponent(`Hola, Los números de Lucas me sale ${ap ? 'desactivado' : 'con la licencia bloqueada'}. Mi cuenta es ${SES ? SES.email : ''}`);
+    modal(`<h2>${ap ? 'Los números de Lucas está en pausa' : 'Licencia bloqueada'}</h2>
+      <p class="dlg-txt">${ap ? 'La aplicación está <b>desactivada temporalmente</b>.' : 'La licencia de esta cuenta está <b>bloqueada</b>.'} Escríbenos por WhatsApp y lo solucionamos.</p>
+      <button class="btn" id="corteRe">🔄 Comprobar otra vez</button>
+      <a class="btn btn-azul" target="_blank" href="${wa}">💬 Escríbenos por WhatsApp</a>`, true);
+    const b = document.getElementById('corteRe');
+    if (b) b.onclick = async () => {
+      b.disabled = true; b.textContent = 'Comprobando…';
+      const r = await api('estado', { token: SES.token });
+      if (r.ok && r.lic) { guarda(r.lic); if (!r.lic.corte) { MODAL_FIJO = false; cerrarModal(); comprobar(); return; } }
+      b.disabled = false; b.textContent = '🔄 Sigue desactivado · reintentar';
+    };
+  }
+  let tCorte = 0;
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden || !SES || !SES.token || Date.now() - tCorte < 120000) return; tCorte = Date.now();
+    const r = await api('estado', { token: SES.token });
+    if (r.ok && r.lic) { const antes = L().corte; guarda(r.lic); if (r.lic.corte) corte(r.lic.corte); else if (antes) { MODAL_FIJO = false; cerrarModal(); } }
+  });
   return { comprobar, cartel };
 })();
 
